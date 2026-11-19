@@ -22,6 +22,16 @@ Ao receber um pacote DADOS ou ICMP:
 Erros 11 e 3 gerados pelo roteador: origem = endereço do próprio roteador, TTL 16, id do pacote que
 causou o erro. NUNCA gerar erro (11 ou 3) em resposta a outra mensagem de erro (D10).
 Pacote gerado pelo roteador (resposta 0, erro 11/3) sem rota de volta: não envia, só log (D11).
+
+Textos para o usuário (D40: contrato com cli.py e tests/integration_local.py; ASCII, sem acento, D39).
+Começo fixo; o resto da linha é livre:
+    ping, resposta tipo 0:   "Resposta de eco de <origem> (id=7) RTT=1.23 ms"
+    ping, resposta tipo 11:  "Tempo excedido informado por <origem> (id=7) RTT=0.84 ms"
+    ping, resposta tipo 3:   "Destino inalcancavel informado por <origem> (id=7) RTT=0.90 ms"
+    ping, sem resposta:      "Timeout: nenhuma resposta em 2 s (id=7)"
+    msg/ping sem rota:       "Destino inalcancavel: sem rota para 10.6.9.0/24 (nada foi enviado)"
+    msg enviada:             "DADOS enviado para <destino> via <proximo salto>"
+    DADOS recebido:          "Mensagem de <origem> para <destino>: <texto>"
 """
 
 TTL_INICIAL = 16     # enunciado: TTL "iniciado em 16 por quem cria o pacote"
