@@ -13,6 +13,7 @@ Regras:
   (regra do professor: código não explicável = nota zero).
 - Não marcar nada como concluído sem teste executado; atualizar `docs/PROGRESS.md` ao terminar uma tarefa.
 - Decisão nova ou mudança de interpretação → registrar em `docs/DECISIONS.md`.
+- Texto que vai para a tela ou para o log: ASCII, sem acentos (D39). Comentários podem ter acento.
 - Regra de desempate (William): onde o enunciado não define, estudar antes e escolher o que cumpre o
   texto literalmente **e** é o mais simples de implementar e explicar. Sem complexidade que não dê nota.
 - Dados fixos: Grupo G = 6 (`10.6.R.1`), ambiente VDI, R1 William, R2 Leonardo, R3 Frederico, R4 Gustavo (não escreve código neste trabalho, mas apresenta).

@@ -10,7 +10,7 @@ Tipo: **T** = escolha técnica livre · **I** = interpretação de ponto que o e
 escolher a opção que (1) cumpre literalmente o texto do professor e protege a interoperabilidade
 e, entre as que cumprem, (2) é a **mais simples de implementar e de explicar** na apresentação.
 Antes de decidir, estudar o ponto; nada de complexidade que não traga nota.
-William delegou as decisões D01–D36 com essa regra; elas estão confirmadas.
+William delegou as decisões D01–D39 com essa regra; elas estão confirmadas.
 
 | ID | Tipo | Decisão | Justificativa | Status |
 |---|---|---|---|---|
@@ -49,6 +49,9 @@ William delegou as decisões D01–D36 com essa regra; elas estão confirmadas.
 | D34 | T | HELLO enviados/recebidos vão **só para o arquivo** de log (parâmetro `terminal=False` do logger) | O critério 1 avalia "HELLO periódico" e o terminal precisa ficar legível; o arquivo prova a periodicidade sem poluir a demo | Confirmada |
 | D35 | T | Ao reenviar um LSP (inundação), usar `packets.encode(pkt)`: mesma origem, mesmo seq, mesma lista | Garante que só sai do nosso roteador o formato exato, mesmo se o LSP chegou com `\n` ou `;` final (D12). O seq não muda, como manda o texto | Confirmada |
 | D36 | T | Topologias com custos **todos diferentes** e sem empate de caminho mínimo: `local5` = 1,4,2,7,3,5; `grupo` = 1,2,3,7 | "enlaces de custos diferentes" na leitura mais forte; Q1 com resposta única | Confirmada |
+| D37 | T | O arquivo de log é aberto para **acrescentar**: ao reiniciar o roteador, o histórico anterior continua no mesmo arquivo | Mostra antes e depois de um reinício no mesmo log (Q3 do relatório e demo de reinício); não exige código extra | Confirmada |
+| D38 | T | A CLI captura exceção de um comando, mostra `Erro ao executar o comando: ...` e continua lendo | Um erro num comando não pode encerrar o roteador no meio da demo; mesmo espírito da D33 | Confirmada |
+| D39 | T | Tudo o que o programa mostra na tela ou grava no log (mensagens, cabeçalhos, textos de log) é **ASCII, sem acentos**. Comentários e docstrings podem ter acento | Teste real: com a saída do terminal em ASCII, o `print` de "Próximo" derrubava a CLI (`UnicodeEncodeError`). Em locale C o Python 3.7+ já resolve, mas sem acento não há risco em nenhum terminal; o protocolo já é ASCII. Garantido por `tests/test_cli.py::TestSaidaAscii` | Confirmada |
 | D31 | L | Sincronização: quando um vizinho fica ativo, primeiro gera o novo LSP próprio (enviado a todos os ativos), depois envia ao novo vizinho uma cópia de **todos** os LSPs da LSDB, inclusive o próprio | Texto: "além do novo LSP próprio, o roteador envia a ele uma cópia de todos os LSPs da sua LSDB". A cópia repetida do LSP próprio é descartada pelo vizinho (regra 2) | Confirmada |
 
 ## Análise do ambiente (D24)

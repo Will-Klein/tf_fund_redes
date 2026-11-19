@@ -89,24 +89,27 @@ class Router:
 
     # Leitura para a CLI (devolvem cópias, feitas sob o lock)
     def get_table(self):
+        """{'10.6.2.0/24': ('10.6.2.1', 1), ...}  ->  rede: (próximo salto, custo)."""
         raise NotImplementedError("Router.get_table: F2 (William)")
 
     def get_lsdb(self):
+        """{'10.6.1.1': (1795111000, {'10.6.2.1': 1}), ...}  ->  origem: (seq, {vizinho: custo})."""
         raise NotImplementedError("Router.get_lsdb: F2 (William)")
 
     def get_active_neighbors(self):
+        """[('10.6.2.1', '192.168.0.12', 6000), ...]  ->  (endereço virtual, IP real, porta) dos ativos."""
         raise NotImplementedError("Router.get_active_neighbors: F1 (William)")
 
 
 def main():
     if len(sys.argv) != 2:
-        print("Uso: python3 router.py <arquivo de configuração>")
+        print("Uso: python3 router.py <arquivo de configuracao>")
         print("Exemplo: python3 router.py configs/local5/r1.conf")
         sys.exit(1)
     try:
         cfg = config.load_config(sys.argv[1])
     except config.ConfigError as erro:
-        print("Erro na configuração:", erro)
+        print("Erro na configuracao:", erro)
         sys.exit(1)
 
     logger = Logger(os.path.join("logs", cfg.address + ".log"))
