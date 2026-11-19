@@ -5,6 +5,7 @@ Antes de qualquer trabalho, leia nesta ordem:
 2. `docs/PROGRESS.md` (onde paramos)
 3. `docs/DECISIONS.md` e `docs/IMPLEMENTATION_PLAN.md` conforme a tarefa
 4. `docs/ENUNCIADO.md` é a fonte de verdade dos requisitos
+5. `docs/GUIA_ESTUDO.md`: explicação do código para o grupo; ao mudar um módulo, atualize a parte dele
 
 Regras:
 - Formatos de pacote e regras de processamento seguem o enunciado **literalmente** (interoperabilidade).
