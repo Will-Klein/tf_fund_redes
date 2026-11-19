@@ -17,5 +17,7 @@ def dijkstra(graph, source):
     source: endereço virtual do próprio roteador.
 
     Devolve {destino: (proximo_salto, custo)}, sem incluir o próprio source.
+    Se source ainda não estiver no grafo (o roteador recebeu LSPs antes de gerar o próprio),
+    devolve {} sem erro.
     """
     raise NotImplementedError("dijkstra.dijkstra: F1 (Frederico)")

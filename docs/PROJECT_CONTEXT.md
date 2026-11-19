@@ -183,7 +183,8 @@ configs/
   local5/r1.conf ... r5.conf topologia de 5 roteadores em 127.0.0.1 (relatório/testes)
   grupo/r1.conf ... r4.conf  rede do grupo para a apresentação (IPs a preencher)
 tests/
-  test_packets.py, test_config.py, test_dijkstra.py, test_lsdb.py, test_forwarding.py
+  test_packets.py, test_config.py, test_dijkstra.py, test_router.py, test_forwarding.py,
+  test_log.py, test_cli.py, test_interfaces.py
   integration_local.py       sobe 5 roteadores e verifica convergência, ping, queda
 scripts/                     atalhos para subir a topologia local
 logs/                        gerado em execução (no .gitignore)
@@ -208,7 +209,7 @@ merge e garante que cada um saiba explicar o que escreveu); interfaces fixadas a
 
 | Responsável | Tarefas | Arquivos/módulos | Entregáveis | Dependências |
 |---|---|---|---|---|
-| **P1 — William** (núcleo de controle) | Esqueleto e interfaces; classe Router (socket único, threads, lock, despacho); vizinhança (HELLO, ativo/inativo); LSP próprio (seq, renovação), recebimento (regras 1–3), inundação, sincronização, envelhecimento; disparo de recálculo | `router.py`, `tests/test_lsdb.py` | Critérios 1 e 2 (25%) funcionando com testes | `packets.py` (P3), `dijkstra.py` (P4) — usa stubs até ficarem prontos |
+| **P1 — William** (núcleo de controle) | Esqueleto e interfaces; classe Router (socket único, threads, lock, despacho); vizinhança (HELLO, ativo/inativo); LSP próprio (seq, renovação), recebimento (regras 1–3), inundação, sincronização, envelhecimento; disparo de recálculo | `router.py`, `tests/test_router.py` | Critérios 1 e 2 (25%) funcionando com testes | `packets.py` (P3), `dijkstra.py` (P4) — usa stubs até ficarem prontos |
 | **P2 — William** (integração e qualidade) | Logger; CLI (`tabela`, `lsdb`, `vizinhos`, `msg`, `ping`); configs das topologias; teste de integração com 5 roteadores; README; teste de interoperabilidade com outro grupo; revisão de todos os PRs; auditoria final e `.zip` | `log.py`, `cli.py`, `configs/`, `tests/integration_local.py`, `scripts/`, `README.md` | Critérios 6 e 7 (15%), README, entrega | Todos os módulos (integra no fim de cada fase) |
 | **P3 — Leonardo** (plano de dados + condução da apresentação) | Formato/parsing estrito dos pacotes e validação; leitura da config; encaminhamento DADOS/ICMP com TTL; erros 11/3 (sem erro p/ erro); eco; `ping` pendente (id, RTT, timeout 2 s). Conduz o roteiro da apresentação | `packets.py`, `config.py`, `forwarding.py`, `tests/test_packets.py`, `tests/test_config.py`, `tests/test_forwarding.py`, `docs/APRESENTACAO.md` (F5) | Critérios 4 e 5 (25%) + RF04 + roteiro da demo | `packets.py` é a **primeira** entrega (todos dependem dele) |
 | **P4 — Frederico** (cálculo e relatório) | Dijkstra; testes de Dijkstra; liderar o relatório: topologia de 5 roteadores + figura, experimentos Q1–Q3 (Q1 com a tabela de iterações feita à mão), respostas Q4–Q6, capturas `.pcapng`, PDF | `dijkstra.py`, `tests/test_dijkstra.py`, `docs/relatorio/` | Critério 3 (15%) + critério 8 (20%) | Experimentos do relatório dependem do sistema integrado (F3); Q4–Q6 e o passo a passo podem começar já |
