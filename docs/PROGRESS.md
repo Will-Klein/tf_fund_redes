@@ -15,7 +15,8 @@ Regra: só marcar ✅ com teste executado (registrar o comando/resultado na colu
 | 2026-11-19 | Branch `p2-log-cli`: `log.py` e `cli.py` implementados e testados (adiantados enquanto Leonardo e Frederico começam a F1); formato dos getters do Router fixado; D37, D38 | Validação |
 | 2026-11-19 | Validação de `log.py`/`cli.py` além dos testes unitários: CLI real por pipe e por pseudo-terminal com Ctrl+C (sai limpo, sem traceback), locale C, saída forçada em ASCII (achou travamento com acento → D39), log visível a outro processo em tempo real, sintaxe aceita pelo Python 3.8 | PR #1 |
 | 2026-11-19 | PR #1 (log/cli) mergeado. Branch `p1-router`: `router.py` completo (vizinhança, LSP, inundação, sync, envelhecimento, recálculo, rota) + `tests/test_router.py`; contrato do Dijkstra para source fora do grafo | PR #2 |
-| 2026-11-19 | PR #2 (router) mergeado. Branch `p2-integracao`: `tests/integration_local.py`, tabelas esperadas completas da `local5` no plano §5, contrato dos textos do forwarding (D40), README com o teste de integração | Rodar a integração com os módulos reais dos colegas; teste de fumaça da VDI |
+| 2026-11-19 | PR #2 (router) mergeado. Branch `p2-integracao`: `tests/integration_local.py`, tabelas esperadas completas da `local5` no plano §5, contrato dos textos do forwarding (D40), README com o teste de integração | PR #3 |
+| 2026-11-19 | PR #3 (integração) mergeado. Branch `p2-guia-estudo`: `docs/GUIA_ESTUDO.md` parte 1 (router, log, cli): threads e lock, vizinhança, LSP, tabela, robustez, exemplo completo da rede do grupo, 16 perguntas prováveis com resposta, checklist. Nomes e números conferidos no código | Leonardo e Frederico escrevem as partes 2 e 3; todos estudam; rodar a integração com os módulos reais; teste de fumaça da VDI |
 
 ## Tarefas
 
@@ -39,4 +40,7 @@ Regra: só marcar ✅ com teste executado (registrar o comando/resultado na colu
 | F5 | README final | William (P2) | ⬜ | |
 | F5 | Roteiro da apresentação (`docs/APRESENTACAO.md`) | Leonardo | ⬜ | |
 | F5 | Ensaio da apresentação + simulação de perguntas | Todos (incl. Gustavo) | ⬜ | |
+| contínuo | Guia de estudo: parte 1 (router, log, cli) | William | ✅ | `docs/GUIA_ESTUDO.md`; nomes de funções, constantes e limites conferidos por busca no código; exemplo bate com `tests/test_router.py` |
+| contínuo | Guia de estudo: parte 2 (packets, config, forwarding) | Leonardo | ⬜ | |
+| contínuo | Guia de estudo: parte 3 (dijkstra) | Frederico | ⬜ | |
 | F5 | Auditoria final e `.zip` | William | ⬜ | |

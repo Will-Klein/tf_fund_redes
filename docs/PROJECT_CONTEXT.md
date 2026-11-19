@@ -7,6 +7,7 @@
 > - Plano detalhado, interfaces e testes: [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md)
 > - Decisões e interpretações (com status): [`DECISIONS.md`](DECISIONS.md)
 > - Andamento: [`PROGRESS.md`](PROGRESS.md)
+> - Guia de estudo do código (todos precisam saber explicar tudo): [`GUIA_ESTUDO.md`](GUIA_ESTUDO.md)
 >
 > Última atualização: 2026-11-19 (plano aprovado; **F0 concluída** — esqueleto com interfaces; próxima: F1).
 >
