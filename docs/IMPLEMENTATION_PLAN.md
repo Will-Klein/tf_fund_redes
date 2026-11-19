@@ -175,7 +175,9 @@ def dijkstra(graph, source):
   exatamente como estão nos LSPs (D07); nós que só aparecem como vizinho em algum LSP também são
   destinos. Empate: qualquer um (determinístico por ordem do heap).
 - **Requisitos:** RF15, RF16. **Proibido:** networkx, scipy etc.
-- **Testes:** `tests/test_dijkstra.py` — topologia `local5` com resultado calculado à mão; nó
+- **Contrato extra:** se `source` ainda não estiver no grafo (LSPs recebidos antes do próprio, D05),
+  devolve `{}` sem erro.
+- **Testes:** `tests/test_dijkstra.py` — topologia `local5` com resultado calculado à mão; source fora do grafo; nó
   inalcançável; empate; aresta só de ida; grafo só com o source; caminho alternativo após remover nó.
 
 ### 4.4 `router.py` — P1 (William)
@@ -408,6 +410,10 @@ O roteiro detalhado (`docs/APRESENTACAO.md`) é escrito pelo Leonardo na F5.
 - Ao derrubar um roteador, a rota só muda depois de **até ~20 s** (detecção por ausência de HELLO).
 - O LSP do roteador derrubado continua na `lsdb` por até **90 s** (envelhecimento), mas ele some da
   `tabela` assim que os vizinhos geram LSPs sem ele (ninguém mais tem aresta até ele).
+- Logo depois de uma queda, por alguns segundos um roteador pode ainda ter rota para o roteador
+  caído, passando por um vizinho que ainda não detectou a queda (o LSP antigo dele ainda lista o
+  caído). A rota some quando os vizinhos do caído inundam LSPs novos (até ~20 s). Visto em
+  `tests/test_router.py::test_queda_de_r2_usa_caminho_alternativo`; bom exemplo para a Q3/Q6.
 - Reiniciar o roteador derrubado **depois** de os vizinhos o marcarem inativo (~20 s): aí eles o
   veem ficar ativo de novo e fazem a sincronização. Se reiniciar antes, os vizinhos não percebem a
   queda, não sincronizam, e ele só completa a LSDB nas renovações (até 30 s).
