@@ -59,6 +59,14 @@ Configurações prontas:
 
 ## Testes
 
+Testes unitários (rápidos):
+
 ```bash
 python3 -m unittest discover tests
+```
+
+Teste de integração (sobe os 5 roteadores da `local5` nas portas 6001–6005; leva ~1 minuto):
+
+```bash
+python3 tests/integration_local.py
 ```

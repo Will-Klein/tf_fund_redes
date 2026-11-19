@@ -264,7 +264,7 @@ Endereço virtual   IP real          Porta
 > ping 10.6.3.1 1
 Tempo excedido informado por 10.6.2.1 (id=4) RTT=0.84 ms
 > ping 10.9.9.1
-Destino inalcançável: sem rota para 10.9.9.0/24 (nada foi enviado)
+Destino inalcancavel: sem rota para 10.9.9.0/24 (nada foi enviado)
 ```
 
 ### 4.7 `log.py` — P2 (William)
@@ -307,7 +307,15 @@ R1 para os demais (útil para a Q3):
        |         |
        R4 ──5── R5
 ```
-Esperado em R1: R2 via R2 (1); R3 via R2 (3); R5 via R2 (6); R4 via R2 (8, enlace R2–R4).
+| Roteador | Tabela esperada (destino: próximo salto, custo) | Sem R2 |
+|---|---|---|
+| R1 | R2: R2,1 · R3: R2,3 · R4: R2,8 · R5: R2,6 | R3: R3,4 · R4: R3,12 · R5: R3,7 |
+| R2 | R1: R1,1 · R3: R3,2 · R4: R4,7 · R5: R3,5 | — |
+| R3 | R1: R2,3 · R2: R2,2 · R4: R5,8 · R5: R5,3 | R1: R1,4 · R4: R5,8 · R5: R5,3 |
+| R4 | R1: R2,8 · R2: R2,7 · R3: R5,8 · R5: R5,5 | R1: R5,12 · R3: R5,8 · R5: R5,5 |
+| R5 | R1: R3,6 · R2: R3,5 · R3: R3,3 · R4: R4,5 | R1: R3,7 · R3: R3,3 · R4: R4,5 |
+
+(R = roteador 10.6.R.1; sem empates.) Esperado em R1: R2 via R2 (1); R3 via R2 (3); R5 via R2 (6); R4 via R2 (8, enlace R2–R4).
 Caminhos alternativos: R1→R3 direto (4) contra via R2 (3); R1→R4 via R2–R3–R5 (11).
 Sem R2: R3 via R3 (4); R5 via R3 (7); R4 via R3 (12). (Frederico confirma à mão na Q1.)
 
@@ -355,7 +363,8 @@ forwarding/CLI. Até a dependência ficar pronta, usar o stub da F0.
 - **Unitários** (`python3 -m unittest discover tests`): cada dono escreve os testes do seu módulo
   junto com o código (tabelas das §4.x). O Router é testado sem rede: socket falso que guarda o que
   foi enviado e relógio falso injetado no construtor.
-- **Integração local** (`python3 tests/integration_local.py`): sobe os 5 roteadores de `local5`
+- **Integração local** (`python3 tests/integration_local.py`, ~1 min, 41 verificações; o que depende de
+  módulo ainda não implementado aparece como PULADO): sobe os 5 roteadores de `local5`
   como subprocessos, envia comandos pelo stdin, lê a saída e verifica: vizinhos ativos; LSDB com 5
   origens em todos; `tabela` de R1 = §5; `ping` R1→R4 TTL 1..N; `ping 10.99.99.1` (inalcançável, nada
   enviado); `msg`; mata R2 → em ≤ ~25 s a tabela de R1 muda para a rota alternativa; reinicia R2 →
