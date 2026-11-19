@@ -190,7 +190,9 @@ class Router:
     def is_local(self, addr) -> bool      # addr ∈ 10.G.R.0/24 próprio
     def send(self, data, peer)
     # leitura para a CLI (cópias sob lock):
-    def get_table(self); def get_lsdb(self); def get_active_neighbors(self)
+    def get_table(self)            # {'10.6.2.0/24': ('10.6.2.1', 1)}  rede: (próximo salto, custo)
+    def get_lsdb(self)             # {'10.6.1.1': (seq, {'10.6.2.1': 1})}  origem: (seq, {vizinho: custo})
+    def get_active_neighbors(self) # [('10.6.2.1', '192.168.0.12', 6000)]  (virtual, IP real, porta)
 ```
 
 | Funcionalidade | Requisito | Teste |
@@ -265,7 +267,7 @@ Destino inalcançável: sem rota para 10.9.9.0/24 (nada foi enviado)
 
 ### 4.7 `log.py` — P2 (William)
 
-`Logger(path)`; `log(categoria, texto, terminal=True)` → `2026-11-19 16:01:02.123 [CATEGORIA] texto`,
+Textos de log e de tela sempre ASCII, sem acentos (D39). `Logger(path)`; `log(categoria, texto, terminal=True)` → `2026-11-19 16:01:02.123 [CATEGORIA] texto`,
 escrito sempre com `flush` imediato no arquivo `logs/<endereço>.log` e, se `terminal=True`, também no
 terminal (`terminal=False` só para HELLO, D34). Thread-safe.
 
