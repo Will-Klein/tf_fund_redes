@@ -8,7 +8,9 @@ Regras (enunciado, "Cálculo da tabela de roteamento", e D07):
 - Para cada destino alcançável: próximo salto = vizinho da origem pelo qual começa o caminho de
   menor custo; custo = soma dos custos. Em empate, qualquer caminho de custo mínimo serve.
 """
+
 import heapq
+
 
 def dijkstra(graph, source):
     """Calcula os caminhos mínimos a partir de 'source'.
@@ -52,5 +54,3 @@ def dijkstra(graph, source):
 
     # Resultado: todos os alcançados, menos o próprio source.
     return {destino: (primeiro_salto[destino], custo[destino]) for destino in primeiro_salto}
-
-    raise NotImplementedError("dijkstra.dijkstra: F1 (Frederico)")
