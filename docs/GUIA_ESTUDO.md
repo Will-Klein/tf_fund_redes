@@ -5,8 +5,8 @@
 > leva o trabalho a **nota zero**. Cada um precisa conhecer também as partes que não escreveu.
 >
 > Cada dono escreve a parte dele. Parte 1 (esta): `router.py`, `log.py` e `cli.py`, escritos pelo
-> William. Partes pendentes: `packets.py`, `config.py` e `forwarding.py` (Leonardo) e `dijkstra.py`
-> (Frederico).
+> William. Parte 3 (`dijkstra.py`, Frederico) já escrita. Partes pendentes: `packets.py`,
+> `config.py` e `forwarding.py` (Leonardo).
 >
 > Como estudar: leia uma seção, abra o arquivo ao lado e encontre a função citada. No fim há
 > perguntas prováveis do professor e uma lista "consigo explicar...?" para conferir.
@@ -276,4 +276,109 @@ log dos outros com `tail -f logs/10.6.1.1.log`.
 
 ## Parte 3 — `dijkstra.py` (Frederico)
 
-*A escrever pelo Frederico quando o módulo estiver pronto.*
+### 1. O que o módulo faz
+
+Uma única função, `dijkstra(graph, source)`. Ela recebe a LSDB já convertida em grafo e devolve,
+para cada roteador alcançável, **por qual vizinho sair e quanto custa chegar lá**:
+
+- entrada: `graph = {nó: {vizinho: custo}}` e `source` (o próprio endereço virtual);
+- saída: `{destino: (proximo_salto, custo)}`, sem incluir o `source`.
+
+Quem chama é o `Router.recompute` (`router.py`), sempre que a LSDB muda. O Router converte cada
+destino na rede dele (`10.6.3.1` → `10.6.3.0/24`) e guarda o resultado em `self.table`.
+
+### 2. Como o algoritmo funciona
+
+Variáveis (todas locais à função):
+
+| Variável | Para que serve |
+|---|---|
+| `custo` | menor custo **conhecido** até cada nó (provisório até o nó ser finalizado) |
+| `primeiro_salto` | vizinho do `source` pelo qual começa o melhor caminho até cada nó (vira o "próximo salto" da tabela) |
+| `finalizados` | nós cujo custo já é definitivo |
+| `fila` | fila de prioridade (`heapq`) com tuplas `(custo, nó)` |
+
+Passo a passo:
+1. Se o `source` não está no grafo (o roteador recebeu LSPs antes de gerar o próprio), devolve `{}`.
+2. Começa com `custo[source] = 0` e a fila com `(0, source)`.
+3. Repete: tira da fila o nó de **menor custo** (`heappop`). Se já foi finalizado, ignora (é uma
+   entrada antiga). Senão, finaliza.
+4. **Relaxamento:** para cada aresta que **sai** desse nó, calcula `novo_custo = custo_no + peso`.
+   Se for menor que o custo conhecido do vizinho, atualiza `custo`, atualiza `primeiro_salto` e
+   empilha `(novo_custo, vizinho)`.
+5. Quando a fila acaba, devolve `(primeiro_salto, custo)` de todos os nós alcançados.
+
+**Como o próximo salto é obtido sem reconstruir o caminho:** se a aresta sai do próprio `source`,
+o vizinho é o primeiro salto dele mesmo; senão, ele herda o primeiro salto do nó de onde veio
+(`primeiro_salto[no]`). Assim a informação já está pronta quando o algoritmo termina.
+
+### 3. Decisões que aparecem no código
+
+- **Grafo dirigido (D07):** só se usam as arestas O → vizinho do LSP de O, sem checar se o vizinho
+  também lista O. É o que o enunciado descreve.
+- **Nó que só aparece como vizinho:** também é destino. Por isso o código usa
+  `graph.get(no, {})`: esse nó não tem LSP próprio na LSDB, e o `get` evita erro.
+- **Empate:** qualquer caminho de custo mínimo serve (enunciado). Fica o primeiro encontrado: só
+  se atualiza com `<` estrito.
+- **Custos positivos:** o `packets.py` rejeita custo 0 ou negativo. O Dijkstra só é correto com
+  custos positivos: é isso que garante que o nó retirado da fila já tem custo definitivo.
+- **`heapq` não diminui prioridade:** em vez disso, empilha-se uma nova entrada e as antigas são
+  ignoradas ao sair da fila (`if no in finalizados: continue`).
+- **Proibido** usar networkx, scipy etc.; `heapq` é da biblioteca padrão e é permitido.
+
+### 4. Exemplo: R1 na `local5` (iterações, como na aula)
+
+Arestas: R1–R2=1, R1–R3=4, R2–R3=2, R2–R4=7, R3–R5=3, R4–R5=5.
+
+| Passo | N' (finalizados) | R2 | R3 | R4 | R5 |
+|---|---|---|---|---|---|
+| 0 | R1 | 1, R2 | 4, R3 | ∞ | ∞ |
+| 1 | R1, R2 | | 3, R2 | 8, R2 | ∞ |
+| 2 | R1, R2, R3 | | | 8, R2 | 6, R2 |
+| 3 | R1, R2, R3, R5 | | | 8, R2 (via R5 seria 11) | |
+| 4 | R1, R2, R3, R5, R4 | | | | |
+
+Cada célula é `custo, próximo salto`. Resultado: R2 (R2, 1), R3 (R2, 3), R4 (R2, 8), R5 (R2, 6),
+igual à tabela esperada de R1 no plano §5. Este é o ponto de partida da Q1 do relatório.
+
+### 5. Perguntas prováveis do professor (com resposta)
+
+1. **Por que usar `heapq`?** Ele entrega o nó pendente de menor custo em O(log n), sem varrer todos.
+2. **Qual a complexidade?** O((V + E) log V), com V roteadores e E arestas.
+3. **Por que o nó retirado da fila já tem custo definitivo?** Porque os custos são positivos:
+   qualquer outro caminho passaria por nós de custo maior ou igual, e só poderia ficar mais caro.
+4. **Como você descobre o próximo salto?** Propagando o primeiro salto durante o relaxamento: o
+   vizinho direto do `source` é o próprio primeiro salto; os demais herdam o do nó anterior.
+5. **Por que ignorar entradas antigas da fila?** O `heapq` não permite diminuir a prioridade; quando
+   o custo de um nó melhora, entra uma entrada nova, e a velha, ao sair, já encontra o nó finalizado.
+6. **O que acontece se o `source` não está no grafo?** Devolve `{}`: não há por onde começar. Pode
+   ocorrer se chegarem LSPs de outros antes de o roteador gerar o próprio.
+7. **Por que o grafo é dirigido?** Cada LSP só informa as arestas que saem da própria origem (D07).
+8. **O que acontece com um nó que só aparece como vizinho?** Vira destino normalmente; o `get(no, {})`
+   o trata como um nó sem arestas de saída.
+9. **E se houver empate?** Qualquer caminho de custo mínimo é aceito; o código fica com o primeiro
+   encontrado.
+10. **Quando o Dijkstra roda?** A cada mudança na LSDB: LSP novo, LSP próprio novo ou
+    envelhecimento (`Router.recompute`).
+11. **Por que a rota para um roteador caído pode existir por alguns segundos?** O Dijkstra calcula
+    sobre o que a LSDB diz. Enquanto um LSP antigo ainda lista o caído, a aresta existe e a rota
+    também; some quando os LSPs novos chegam.
+12. **Onde você garante que o resultado não inclui o próprio roteador?** `primeiro_salto` nunca recebe
+    o `source`: ele já está finalizado quando suas arestas são relaxadas, então nenhuma aresta o
+    atualiza.
+
+### 6. Para conferir na prática
+
+```bash
+python3 -m unittest tests.test_dijkstra -v
+```
+
+### 7. Consigo explicar...?
+
+- [ ] o papel de `custo`, `primeiro_salto`, `finalizados` e `fila`;
+- [ ] o laço principal e o relaxamento, linha por linha;
+- [ ] como o próximo salto é obtido sem reconstruir o caminho;
+- [ ] por que as entradas antigas da fila são ignoradas;
+- [ ] por que o grafo é dirigido e como tratar um nó que só aparece como vizinho;
+- [ ] o exemplo da seção 4 sem olhar a tabela;
+- [ ] as perguntas da seção 5 sem olhar a resposta.
