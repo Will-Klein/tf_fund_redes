@@ -1,35 +1,15 @@
 """Testes do router.py (dono: William): vizinhança, LSP, inundação, sincronização, envelhecimento e tabela.
 
 O Router roda sem rede: socket falso (guarda o que foi enviado) e relógio falso (avança à mão).
-Quase tudo aqui usa o packets.py (William) e o dijkstra.py (Frederico). Enquanto eles não
-estiverem prontos (F1), esses testes são pulados; passam a rodar sozinhos depois.
 """
 
 import time
 import unittest
 
 import config
-import dijkstra
 import packets
 import router
 from router import Router
-
-
-def modulo_pronto(funcao):
-    try:
-        funcao()
-        return True
-    except NotImplementedError:
-        return False
-    except Exception:
-        return True  # existe e roda (o erro, se houver, aparece nos testes)
-
-
-PRONTOS = (modulo_pronto(lambda: packets.encode(packets.Hello("10.6.1.1")))
-           and modulo_pronto(lambda: packets.parse(b"HELLO:10.6.1.1"))
-           and modulo_pronto(lambda: packets.network_of("10.6.1.1"))
-           and modulo_pronto(lambda: dijkstra.dijkstra({}, "10.6.1.1")))
-PRECISA_MODULOS = unittest.skipUnless(PRONTOS, "aguarda packets.py (William)")
 
 # R1 de um anel de 4 roteadores usado só nos testes (R1-R2=1, R2-R4=2, R4-R3=3, R3-R1=7)
 R2 = ("127.0.0.1", 6002)   # 10.6.2.1, custo 1
@@ -97,7 +77,7 @@ def lsp(r, peer, origem, seq, vizinhos):
 
 
 class TestFiltroDeVizinho(unittest.TestCase):
-    """Não precisa de packets: o descarte acontece antes da leitura do pacote."""
+    """O descarte de par desconhecido acontece antes da leitura do pacote."""
 
     def test_par_desconhecido_e_descartado_sem_mudar_nada(self):
         r, sock, _, logger = criar_r1()
@@ -114,7 +94,6 @@ class TestFiltroDeVizinho(unittest.TestCase):
         self.assertFalse(r.neighbors[R2].active)
 
 
-@PRECISA_MODULOS
 class TestVizinhanca(unittest.TestCase):
     def setUp(self):
         self.r, self.sock, self.relogio, self.logger = criar_r1()
@@ -180,7 +159,6 @@ class TestVizinhanca(unittest.TestCase):
         self.assertEqual(self.r.get_lsdb()["10.6.1.1"][1], {"10.6.2.1": 1})
 
 
-@PRECISA_MODULOS
 class TestLspProprio(unittest.TestCase):
     def setUp(self):
         self.r, self.sock, self.relogio, self.logger = criar_r1()
@@ -212,7 +190,6 @@ class TestLspProprio(unittest.TestCase):
                          ("LSP:10.6.1.1:%d:" % self.r.seq).encode())   # formato do enunciado
 
 
-@PRECISA_MODULOS
 class TestRecebimentoDeLsp(unittest.TestCase):
     def setUp(self):
         self.r, self.sock, self.relogio, self.logger = criar_r1()
@@ -259,7 +236,6 @@ class TestRecebimentoDeLsp(unittest.TestCase):
         self.assertEqual(sock.enviados, [])              # ninguém ativo para reenviar
 
 
-@PRECISA_MODULOS
 class TestSincronizacao(unittest.TestCase):
     def test_novo_vizinho_recebe_todos_os_lsps_inclusive_o_proprio(self):
         r, sock, relogio, logger = criar_r1()
@@ -275,7 +251,6 @@ class TestSincronizacao(unittest.TestCase):
         self.assertTrue(logger.tem("LSP", "sincronizacao: 3 LSPs enviados a 10.6.3.1"))
 
 
-@PRECISA_MODULOS
 class TestEnvelhecimento(unittest.TestCase):
     def test_lsp_alheio_removido_apos_90_s_e_proprio_nunca(self):
         r, sock, relogio, logger = criar_r1()
@@ -303,7 +278,6 @@ class TestEnvelhecimento(unittest.TestCase):
         self.assertIn("10.6.4.1", r.lsdb)
 
 
-@PRECISA_MODULOS
 class TestTabela(unittest.TestCase):
     def montar_grupo(self):
         """R1 recebe os LSPs do anel de 4 roteadores dos testes: R1-R2=1, R2-R4=2, R4-R3=3, R3-R1=7."""
@@ -362,7 +336,6 @@ class TestTabela(unittest.TestCase):
         self.assertFalse(r.is_local("10.6.2.1"))
 
 
-@PRECISA_MODULOS
 class TestRobustez(unittest.TestCase):
     def test_malformado_e_descartado(self):
         r, sock, _, logger = criar_r1()

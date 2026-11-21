@@ -5,8 +5,8 @@
 > leva o trabalho a **nota zero**. Cada um precisa conhecer também as partes que não escreveu.
 >
 > Cada dono escreve a parte dele. Parte 1 (esta): `router.py`, `log.py` e `cli.py`, escritos pelo
-> William. Parte 3 (`dijkstra.py`, Frederico) já escrita. Parte 2 pendente: `packets.py` e
-> `config.py` (William) e `forwarding.py` (Frederico). Desde 2026-11-20 somos trio: William,
+> William. Parte 2: `packets.py` e `config.py` (William) já escrita; `forwarding.py` (Frederico)
+> pendente. Parte 3 (`dijkstra.py`, Frederico) já escrita. Desde 2026-11-20 somos trio: William,
 > Frederico e Gustavo (o Leonardo saiu do grupo).
 >
 > Como estudar: leia uma seção, abra o arquivo ao lado e encontre a função citada. No fim há
@@ -178,7 +178,7 @@ endereço. É assim que um endereço virtual vira um envio UDP de verdade.
 - `tabela`, `lsdb` e `vizinhos` só formatam o que o Router devolve (`get_table`, `get_lsdb`,
   `get_active_neighbors`), em ordem numérica de endereço (`chave_endereco`).
 - `msg`: o texto é o resto da linha (`split(None, 2)`); é recusado se tiver `:` ou acento.
-- `ping`: o TTL padrão é 16 e precisa ser um inteiro ≥ 1 (`so_digitos`). Quem envia e espera a
+- `ping`: o TTL padrão é 16 e precisa ser um inteiro ≥ 1 (`packets.so_digitos`). Quem envia e espera a
   resposta é o `forwarding.py`.
 
 ### 10. Exemplo completo: a rede do grupo
@@ -276,7 +276,129 @@ log dos outros com `tail -f logs/10.6.1.1.log`.
 
 ## Parte 2 — `packets.py` e `config.py` (William), `forwarding.py` (Frederico)
 
-*A escrever por cada dono quando os módulos estiverem prontos.*
+### 2A. `packets.py` — formato dos pacotes (critérios 1, 2, 4 e 7)
+
+**O que é.** O único lugar que sabe como um pacote é escrito. O resto do programa só vê
+*namedtuples*: `Hello(addr)`, `Lsp(origin, seq, neighbors)`, `Dados(src, dst, ttl, id, msg)` e
+`Icmp(src, dst, ttl, id, type)`. Os campos têm os nomes do enunciado e os números já são `int`.
+Por que isso importa: na interoperabilidade o outro grupo só entende o nosso roteador se cada byte
+estiver no formato exato. Concentrar o formato num arquivo só garante isso.
+
+**Duas funções principais:**
+
+| Função | Recebe | Devolve |
+|---|---|---|
+| `parse(data)` | bytes que chegaram do socket | um dos 4 tipos, ou **levanta `MalformedPacket`** |
+| `encode(pkt)` | um dos 4 tipos | bytes no formato exato do enunciado |
+
+**`parse` em 4 passos** (siga no código, os comentários têm os mesmos números):
+1. `data.decode("ascii")`. Um acento (byte > 127) gera erro e o pacote vira malformado ("texto ASCII").
+2. Tira **um** `\r\n` ou `\n` do fim, se houver (D12: outra linguagem pode mandar).
+3. `split(":")`. O tipo precisa estar em `NUM_CAMPOS` (HELLO 2, LSP 4, DADOS 6, ICMP 6) e o número
+   de campos precisa ser exato. Uma mensagem com `:` vira um campo a mais e cai aqui (D13).
+4. Cada campo no formato certo:
+   - endereço: `ler_endereco`, que usa `is_virtual_addr`;
+   - número: `ler_numero`, que usa `so_digitos`;
+   - lista do LSP: `ler_lista_lsp`, com custo > 0;
+   - tipo ICMP: precisa estar em `TIPOS_ICMP`, isto é, 0, 3, 8 ou 11.
+
+Qualquer falha levanta `MalformedPacket`. Quem chama é o `Router.handle_datagram`, que descarta e
+loga, e o roteador continua vivo (RF04).
+
+**Por que `so_digitos` e não `int()`?** `int()` aceita `"+16"`, `" 16"` e `"-1"`, e
+`str.isdigit()` aceita `"²"`. O enunciado diz "valores não numéricos são malformados", então só
+aceitamos os caracteres `0` a `9`. A mesma função valida a configuração e o TTL do `ping` na CLI.
+
+**A lista do LSP.** `"10.3.2.1=1;10.3.4.1=3"` vira `{"10.3.2.1": 1, "10.3.4.1": 3}`:
+- Lista vazia `LSP:10.3.1.1:1767712001:`: o 4º campo é `""` e vira `{}` (RF11).
+- Item vazio (`;` no fim) é ignorado (D12).
+- Item sem exatamente um `=` é malformado, e custo 0 também.
+
+**`encode`** faz o caminho inverso com `%d` e `%s`, e termina com `.encode("ascii")`. Ele nunca
+escreve `\n` nem `;` no fim. Por isso, ao inundar um LSP, o Router reenvia `packets.encode(pkt)` (o pacote já lido), e não os
+bytes recebidos: um LSP que chegou com sobras sai limpo, com a mesma origem, o mesmo seq e a mesma lista (D35).
+
+**Funções de endereço** (usadas pelo Router e pela CLI):
+- `is_virtual_addr("10.6.2.1")`: 4 octetos, cada um só com dígitos e no máximo 255.
+- `network_of("10.6.2.1")` → `"10.6.2.0/24"`. É a chave da tabela de roteamento.
+- `same_network(a, b)`: os 3 primeiros octetos são iguais. É o "destino na própria rede"
+  (`10.7.1.50` é atendido por `10.7.1.1`).
+- `valid_text(msg)`: só ASCII e sem `:`. A CLI recusa a mensagem antes de enviar.
+
+**Exemplos que devem ser malformados** (todos estão em `tests/test_packets.py`):
+
+| Pacote | Por quê |
+|---|---|
+| `OLA:10.3.1.1` | tipo desconhecido |
+| `HELLO:10.3.1.1:extra` | campos a mais |
+| `DADOS:10.3.1.1:10.3.4.1:16:0:hora: 10h` | `:` na mensagem → 7 campos |
+| `ICMP:10.3.1.1:10.3.4.1:+16:42:8` | `+16` não é só dígitos |
+| `LSP:10.3.1.1:5:10.3.2.1=0` | custo 0 |
+| `ICMP:...:16:42:5` | tipo ICMP 5 não existe na tabela |
+| `DADOS:...:Olá` | acento → não é ASCII |
+
+### 2B. `config.py` — arquivo de configuração (RF01)
+
+`load_config(path)` lê o arquivo linha a linha e devolve
+`Config(address, port, neighbors)`, em que `neighbors` é uma lista de
+`NeighborConf(ip, port, cost)`. Para cada linha:
+
+1. Tira o comentário (`split("#")[0]`) e separa por espaços (`split()`). Linha vazia é ignorada.
+2. A primeira palavra é a diretiva:
+   - `endereco <IPv4>`: obrigatório e só uma vez;
+   - `porta <1..65535>`: opcional e só uma vez; se faltar, vale `DEFAULT_PORT = 6000`;
+   - `vizinho <IP real> <porta> <custo>`: o IP precisa ser numérico, o custo um inteiro positivo
+     (enunciado) e o par (IP, porta) não pode repetir.
+3. Qualquer outra coisa gera `ConfigError("linha N: ...")`. O `router.main` mostra a mensagem e
+   não inicia (D43).
+
+Detalhes que o professor pode perguntar:
+- **Por que o IP do vizinho tem que ser numérico?** O Router compara o par (IP, porta) que chega
+  no `recvfrom` com os da configuração. `recvfrom` sempre devolve o IP numérico, então um nome como
+  `localhost` nunca casaria e todo pacote seria descartado.
+- **Aviso, não erro, para endereço fora de `10.G.R.1`:** o roteador funciona com qualquer
+  endereço, mas o enunciado pede esse padrão. Por isso o programa só avisa.
+- **`configs/grupo/` tem `IP_R2`, `IP_R3`:** de propósito. Sem trocar pelos IPs reais das VMs, o
+  roteador para com `linha 10: IP do vizinho invalido 'IP_R2'`, em vez de rodar com um endereço errado.
+- **Interoperabilidade** é só acrescentar uma linha `vizinho <IP do outro grupo> <porta> <custo>`,
+  com o mesmo custo dos dois lados.
+- O arquivo é lido como UTF-8, porque os comentários podem ter acento.
+
+### 2C. Perguntas prováveis (packets/config)
+
+1. *O que acontece se chegar `HELLO:10.6.2.1:x`?* → campos a mais → `MalformedPacket` → o Router
+   descarta, loga `[DESCARTE] pacote malformado ...` e continua.
+2. *E se outro grupo mandar `HELLO:10.7.1.1\n`?* → aceitamos (D12). Nós nunca enviamos o `\n`.
+3. *Como vocês garantem que a mensagem não tem `:`?* → na saída, `valid_text` na CLI. Na
+   entrada, o `:` cria um campo a mais e o pacote é descartado.
+4. *Por que o LSP vazio termina em `:`?* → é o 4º campo vazio. O enunciado mostra exatamente
+   `LSP:10.3.1.1:1767712001:`, e `encode` gera isso porque `";".join([])` dá `""`.
+5. *Onde o endereço virtual vira rede?* → `network_of`, usado no `Router.recompute` (chave da
+   tabela) e no `route_for`.
+6. *O que acontece com uma config errada?* → `ConfigError` com o número da linha; o roteador
+   nem abre o socket.
+
+### 2D. Para conferir na prática
+
+```bash
+python3 -m unittest tests.test_packets tests.test_config -v
+python3 -c "import packets; print(packets.parse(b'LSP:10.3.1.1:1767712000:10.3.2.1=1;10.3.4.1=3'))"
+python3 -c "import packets; packets.parse(b'OLA:1.2.3.4')"     # mostra o MalformedPacket
+python3 router.py configs/grupo/r1.conf                         # erro: IP_R2 ainda não trocado
+```
+
+### 2E. Consigo explicar...?
+
+- [ ] os 4 formatos de pacote e quantos campos cada um tem;
+- [ ] os 4 passos do `parse` e onde cada tipo de malformado é pego;
+- [ ] por que `so_digitos` em vez de `int()`;
+- [ ] as duas tolerâncias (D12) e por que `encode` nunca as gera;
+- [ ] `network_of` e `same_network`, e onde o Router usa cada um;
+- [ ] as diretivas da configuração e cada erro possível.
+
+### 2F. `forwarding.py` (Frederico)
+
+*A escrever pelo Frederico quando o módulo estiver pronto.*
 
 ## Parte 3 — `dijkstra.py` (Frederico)
 

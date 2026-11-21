@@ -1,8 +1,4 @@
-"""Testes do cli.py (dono: William), com um roteador e um forwarder falsos.
-
-Os testes marcados com PRECISA_PACKETS validam endereço/texto usando o packets.py (William).
-Enquanto ele não estiver pronto (F1), esses testes são pulados; passam a rodar sozinhos depois.
-"""
+"""Testes do cli.py (dono: William), com um roteador e um forwarder falsos."""
 
 import io
 import unittest
@@ -10,19 +6,6 @@ from contextlib import redirect_stdout
 from unittest import mock
 
 import cli
-import packets
-
-
-def packets_pronto():
-    try:
-        packets.is_virtual_addr("10.6.1.1")
-        packets.valid_text("oi")
-        return True
-    except NotImplementedError:
-        return False
-
-
-PRECISA_PACKETS = unittest.skipUnless(packets_pronto(), "aguarda packets.py (F1, William)")
 
 
 class RouterFalso:
@@ -144,26 +127,22 @@ class TestMsgEPing(unittest.TestCase):
     def rodar(self, linha):
         return cli.executar(linha, RouterFalso(), self.fwd)
 
-    @PRECISA_PACKETS
     def test_msg_envia_resto_da_linha_com_espacos(self):
         texto, _ = self.rodar("msg 10.6.3.1 Oi pessoal, tudo bem?")
         self.assertEqual(self.fwd.chamadas, [("msg", "10.6.3.1", "Oi pessoal, tudo bem?")])
         self.assertEqual(texto, "DADOS enviado para 10.6.3.1")
 
-    @PRECISA_PACKETS
     def test_msg_recusa_dois_pontos_acento_e_destino_invalido(self):
         self.assertIn("Texto invalido", self.rodar("msg 10.6.3.1 hora: 10h")[0])
         self.assertIn("Texto invalido", self.rodar("msg 10.6.3.1 olá")[0])
         self.assertIn("Destino invalido", self.rodar("msg roteador3 oi")[0])
         self.assertEqual(self.fwd.chamadas, [])
 
-    @PRECISA_PACKETS
     def test_ping_ttl_padrao_16_e_ttl_informado(self):
         self.rodar("ping 10.6.3.1")
         self.rodar("ping 10.6.3.1 2")
         self.assertEqual(self.fwd.chamadas, [("ping", "10.6.3.1", 16), ("ping", "10.6.3.1", 2)])
 
-    @PRECISA_PACKETS
     def test_ping_recusa_ttl_invalido(self):
         for ttl in ["0", "-1", "abc", "²", "1.5"]:
             self.assertIn("TTL invalido", self.rodar("ping 10.6.3.1 " + ttl)[0], ttl)
@@ -180,9 +159,8 @@ class TestSaidaAscii(unittest.TestCase):
         for linha in ["tabela", "lsdb", "vizinhos", "sair", "xyz", "msg", "ping"]:
             textos.append(cli.executar(linha, router, fwd)[0])
             textos.append(cli.executar(linha, vazio, fwd)[0])
-        if packets_pronto():
-            for linha in ["msg 10.6.3.1 olá", "msg x oi", "ping x", "ping 10.6.3.1 0"]:
-                textos.append(cli.executar(linha, router, fwd)[0])
+        for linha in ["msg 10.6.3.1 olá", "msg x oi", "ping x", "ping 10.6.3.1 0"]:
+            textos.append(cli.executar(linha, router, fwd)[0])
         for texto in textos:
             texto.encode("ascii")   # levanta UnicodeEncodeError se houver acento
 
