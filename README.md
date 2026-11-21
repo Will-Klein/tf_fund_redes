@@ -7,11 +7,13 @@ com Dijkstra e encaminha DADOS/ICMP com TTL (`ping`, tempo excedido, destino ina
 Integrantes: William, Frederico e Gustavo. Endereços virtuais `10.6.R.1` (R1 William,
 R2 Frederico, R3 Gustavo).
 
-> **Estado:** em desenvolvimento (fase F0 — esqueleto). Andamento em `docs/PROGRESS.md`.
+> **Estado:** em desenvolvimento (falta o `forwarding.py`). Andamento em `docs/PROGRESS.md`.
 
 ## Requisitos
 
 - Python 3.8 ou mais novo, só a biblioteca padrão (nada para instalar).
+- No **Windows** (é o caso da VM da VDI da PUCRS), use `py` no lugar de `python3` em todos os
+  comandos abaixo; caminhos com `/` funcionam igual (ex.: `py router.py configs/grupo/r1.conf`).
 
 ## Execução
 
@@ -56,6 +58,7 @@ vizinho 192.168.0.13 6000 7
 Configurações prontas:
 - `configs/local5/` — 5 roteadores em `127.0.0.1`, portas 6001–6005 (testes e relatório).
 - `configs/grupo/` — rede do grupo (3 roteadores) para a apresentação; troque `IP_Rn` pelo IP real de cada VM.
+- `configs/teste_vdi/` — só R1 e R3, para o teste rápido entre duas VMs (`docs/TESTE_VDI.md`).
 
 ## Testes
 

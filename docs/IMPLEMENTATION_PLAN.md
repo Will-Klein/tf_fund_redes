@@ -400,8 +400,9 @@ O roteiro detalhado (`docs/APRESENTACAO.md`) é escrito pelo William na F5 (ante
 ## 10. Checklists operacionais (não são código, mas valem nota)
 
 **Regras do enunciado que exigem ação do grupo**
-- [ ] Informar no Moodle os integrantes (trio: William, Frederico, Gustavo; tirar o Leonardo) e a
-      data de apresentação (e o ambiente, se o Moodle pedir); avisar o professor da mudança.
+- [x] Informar no Moodle os integrantes (trio: William, Frederico, Gustavo) e avisar o professor
+      da mudança (2026-11-21).
+- [ ] Informar no Moodle a data de apresentação (e o ambiente, se o Moodle pedir).
 - [ ] Prazo de entrega: **antes do início da primeira aula de apresentação** (de qualquer grupo, não
       só da nossa). Atraso não é aceito.
 - [ ] Testes de interoperabilidade com outros grupos: trocar só pacotes, **nunca código** (cópia ⇒

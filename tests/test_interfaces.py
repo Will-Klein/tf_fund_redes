@@ -111,6 +111,10 @@ class TestConfigsDasTopologias(unittest.TestCase):
         # IPs ainda são marcadores IP_Rn -> 10.6.n.1
         self.verificar_simetria("grupo", lambda ip, porta: "10.6.%s.1" % ip.replace("IP_R", ""))
 
+    def test_teste_vdi(self):
+        # teste rápido da VDI: só R1 e R3, mesmos marcadores IP_Rn da rede do grupo
+        self.verificar_simetria("teste_vdi", lambda ip, porta: "10.6.%s.1" % ip.replace("IP_R", ""))
+
 
 if __name__ == "__main__":
     unittest.main()

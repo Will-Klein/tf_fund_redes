@@ -58,6 +58,30 @@ class ForwarderFalso:
         self.recebidos.append((pkt, peer))
 
 
+class FimDoTeste(BaseException):
+    pass
+
+
+class SocketQueRecebe(SocketFalso):
+    """Socket falso para a thread de recepção: devolve, na ordem, o que estiver em 'chegadas'.
+
+    Cada item é (bytes, peer) ou uma exceção para levantar. No fim levanta FimDoTeste, que não é
+    Exception (é BaseException), então o receive_loop não a captura e o teste termina.
+    """
+
+    def __init__(self, chegadas):
+        super().__init__()
+        self.chegadas = list(chegadas)
+
+    def recvfrom(self, tamanho):
+        if not self.chegadas:
+            raise FimDoTeste()
+        item = self.chegadas.pop(0)
+        if isinstance(item, BaseException):
+            raise item
+        return item
+
+
 def criar_r1():
     cfg = config.Config("10.6.1.1", 6001, [config.NeighborConf("127.0.0.1", 6002, 1),
                                            config.NeighborConf("127.0.0.1", 6003, 7)])
@@ -354,31 +378,27 @@ class TestRobustez(unittest.TestCase):
     def test_erro_num_pacote_nao_mata_a_thread_de_recepcao(self):
         r, _, _, logger = criar_r1()
 
-        class Parar(BaseException):
-            pass
-
-        class SocketComFila:
-            def __init__(self, fila):
-                self.fila = fila
-
-            def recvfrom(self, tamanho):
-                if not self.fila:
-                    raise Parar()
-                return self.fila.pop(0)
-
-            def sendto(self, data, peer):
-                pass
-
         class ForwarderQuebrado:
             def handle(self, pkt, peer):
                 raise RuntimeError("falha simulada")
 
-        r.sock = SocketComFila([(b"DADOS:10.6.3.1:10.6.1.1:16:0:oi", R2), (b"HELLO:10.6.2.1", R2)])
+        r.sock = SocketQueRecebe([(b"DADOS:10.6.3.1:10.6.1.1:16:0:oi", R2), (b"HELLO:10.6.2.1", R2)])
         r.forwarder = ForwarderQuebrado()
-        with self.assertRaises(Parar):
+        with self.assertRaises(FimDoTeste):
             r.receive_loop()
         self.assertTrue(logger.tem("ERRO", "falha simulada"))
         self.assertTrue(r.neighbors[R2].active)          # o HELLO seguinte foi processado (D33)
+
+    def test_connection_reset_do_windows_e_ignorado(self):
+        # D44: no Windows, depois de um HELLO a um vizinho que caiu, o recvfrom levanta
+        # ConnectionResetError. A thread ignora (nem loga ERRO) e trata o HELLO seguinte.
+        r, _, _, logger = criar_r1()
+        r.sock = SocketQueRecebe([ConnectionResetError(10054, "conexao redefinida"),
+                                  (b"HELLO:10.6.2.1", R2)])
+        with self.assertRaises(FimDoTeste):
+            r.receive_loop()
+        self.assertTrue(r.neighbors[R2].active)
+        self.assertFalse(any(c == "ERRO" for c, _ in logger.linhas))
 
 
 class TestConstantes(unittest.TestCase):
