@@ -23,11 +23,6 @@ AJUDA = ("Comandos: tabela | lsdb | vizinhos | msg <destino> <texto> | "
          "ping <destino> [TTL] | sair")
 
 
-def so_digitos(texto):
-    """True se o texto tem só os dígitos 0-9 (str.isdigit aceitaria '²', que o int() recusa)."""
-    return texto != "" and all(c in "0123456789" for c in texto)
-
-
 def chave_endereco(endereco):
     """Ordena endereços pelos números: '10.6.10.1' vem depois de '10.6.2.1'."""
     return tuple(int(parte) for parte in endereco.split("/")[0].split("."))
@@ -102,7 +97,7 @@ def executar(linha, router, forwarder):
             return "Destino invalido: %s (use um endereco virtual, ex.: 10.6.2.1)" % destino, True
         ttl = TTL_INICIAL
         if len(partes) == 3:
-            if not so_digitos(partes[2]) or int(partes[2]) < 1:
+            if not packets.so_digitos(partes[2]) or int(partes[2]) < 1:
                 return "TTL invalido: %s (use um inteiro >= 1)" % partes[2], True
             ttl = int(partes[2])
         return forwarder.ping(destino, ttl), True

@@ -10,7 +10,7 @@ Tipo: **T** = escolha técnica livre · **I** = interpretação de ponto que o e
 escolher a opção que (1) cumpre literalmente o texto do professor e protege a interoperabilidade
 e, entre as que cumprem, (2) é a **mais simples de implementar e de explicar** na apresentação.
 Antes de decidir, estudar o ponto; nada de complexidade que não traga nota.
-William delegou as decisões D01–D42 com essa regra; elas estão confirmadas.
+William delegou as decisões D01–D43 com essa regra; elas estão confirmadas.
 
 | ID | Tipo | Decisão | Justificativa | Status |
 |---|---|---|---|---|
@@ -55,6 +55,7 @@ William delegou as decisões D01–D42 com essa regra; elas estão confirmadas.
 | D40 | T | Textos que o `forwarding.py` mostra ao usuário têm começo fixo (ex.: `Resposta de eco de <origem>`, `Tempo excedido informado por <origem>`, `Destino inalcancavel: sem rota para ...`, `Mensagem de <origem> para <destino>: <texto>`); lista completa no topo do `forwarding.py` | O teste de integração confere esses textos; fixar agora evita retrabalho. Cumpre o enunciado: ping mostra tipo da resposta, quem enviou e RTT; DADOS mostra origem, destino e mensagem. Frederico (dono do `forwarding.py` desde 2026-11-20) pode propor outra redação, desde que atualize o contrato e o teste | Confirmada |
 | D41 | T | Grupo virou **trio** (2026-11-20). Numeração: R1 = William (`10.6.1.1`), R2 = Frederico (`10.6.2.1`), R3 = Gustavo (`10.6.3.1`). Apresentação com **3 roteadores** | Enunciado: "4 roteadores nos quartetos, 3 nos trios". Números seguidos, sem buraco, ficam mais fáceis de explicar | Confirmada |
 | D42 | T | Topologia `grupo` do trio: triângulo R1–R2 = 1, R2–R3 = 2, R1–R3 = 5 (substitui o anel de 4 da D36; a `local5` não muda) | Custos todos diferentes, sem empate, e com caminho alternativo: R1→R3 vai por R2 (3) em vez do enlace direto (5), então `ping` com TTL 1 e 2 mostra R2 e depois R3; derrubando R2, R1→R3 usa o enlace direto | Confirmada |
+| D43 | T | `config.py`, detalhes do formato D03: diretiva desconhecida, `endereco`/`porta` repetidos ou com nº errado de argumentos são **erro** (com nº da linha); arquivo lido como UTF-8 (comentários podem ter acento); o aviso de endereço fora de `10.G.R.1` é um `print` e o roteador inicia. A validação de número e de IPv4 reusa `packets.so_digitos`/`packets.is_virtual_addr` (o `cli.py` também passou a usar `packets.so_digitos`) | O formato é "a critério do grupo". Erro claro no início é mais simples de explicar do que adivinhar qual linha vale; uma só função de validação para pacote, config e CLI | Confirmada |
 | D31 | L | Sincronização: quando um vizinho fica ativo, primeiro gera o novo LSP próprio (enviado a todos os ativos), depois envia ao novo vizinho uma cópia de **todos** os LSPs da LSDB, inclusive o próprio | Texto: "além do novo LSP próprio, o roteador envia a ele uma cópia de todos os LSPs da sua LSDB". A cópia repetida do LSP próprio é descartada pelo vizinho (regra 2) | Confirmada |
 
 ## Análise do ambiente (D24)
@@ -101,7 +102,7 @@ Cada decisão foi relida contra `ENUNCIADO.md`. Resultado:
 | Situação | Decisões |
 |---|---|
 | Seguem o texto literalmente (L) | D07, D10, D11, D13, D22, D23, D25, D30, D31, D32 |
-| Escolhas técnicas onde o enunciado deixa livre ("formato a critério do grupo", linguagem livre etc.) | D01–D04, D17, D19, D24, D27–D29, D33–D36 |
+| Escolhas técnicas onde o enunciado deixa livre ("formato a critério do grupo", linguagem livre etc.) | D01–D04, D17, D19, D24, D27–D29, D33–D36, D43 |
 | Interpretações que **cumprem** o texto e só preenchem um detalhe que ele não descreve | D05 ("lista de vizinhos" = a do arquivo de configuração), D06 (V = par de origem do LSP), D08 (a tabela lista "cada roteador alcançável R", e o próprio não tem próximo salto), D12 (tolerância a `\n` final e `;` final: não muda nº de campos nem números, nunca é enviada por nós), D14 (`<= 0` cobre "chegar a 0"), D18 (respostas atrasadas: regra 4 "exibir ao usuário"), D21 (associação refeita a cada HELLO) |
 | Caso **não coberto** pelo texto | D09 (ping/msg para a própria rede) — fora do roteiro da apresentação |
 | Corrigidas nesta verificação | D16 → D30 (não gerar LSP na partida); sincronização → D31 (enviar **todos** os LSPs, sem filtrar o próprio); D20 (removido `ajuda`) |
