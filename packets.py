@@ -1,6 +1,6 @@
 """Formato e leitura dos pacotes do trabalho.
 
-Dono: Leonardo (fase F1). Interface fixada na F0; ver docs/IMPLEMENTATION_PLAN.md §4.1.
+Dono: William (fase F1). Interface fixada na F0; ver docs/IMPLEMENTATION_PLAN.md §4.1.
 
 Toda comunicação é texto ASCII com campos separados por ':' (enunciado, "Formato dos pacotes"):
 
@@ -43,29 +43,29 @@ def parse(data):
 
     Levanta MalformedPacket se o pacote não seguir o formato do enunciado.
     """
-    raise NotImplementedError("packets.parse: F1 (Leonardo)")
+    raise NotImplementedError("packets.parse: F1 (William)")
 
 
 def encode(pkt):
     """Converte um Hello, Lsp, Dados ou Icmp em bytes no formato exato do enunciado."""
-    raise NotImplementedError("packets.encode: F1 (Leonardo)")
+    raise NotImplementedError("packets.encode: F1 (William)")
 
 
 def is_virtual_addr(s):
     """True se s é um endereço IPv4 com 4 octetos de 0 a 255 (ex.: '10.6.2.1')."""
-    raise NotImplementedError("packets.is_virtual_addr: F1 (Leonardo)")
+    raise NotImplementedError("packets.is_virtual_addr: F1 (William)")
 
 
 def network_of(addr):
     """Rede /24 de um endereço: '10.6.2.1' -> '10.6.2.0/24'."""
-    raise NotImplementedError("packets.network_of: F1 (Leonardo)")
+    raise NotImplementedError("packets.network_of: F1 (William)")
 
 
 def same_network(a, b):
     """True se os dois endereços estão na mesma rede /24 (3 primeiros octetos iguais)."""
-    raise NotImplementedError("packets.same_network: F1 (Leonardo)")
+    raise NotImplementedError("packets.same_network: F1 (William)")
 
 
 def valid_text(msg):
     """True se a mensagem de DADOS é válida: só caracteres ASCII e sem ':' (D13)."""
-    raise NotImplementedError("packets.valid_text: F1 (Leonardo)")
+    raise NotImplementedError("packets.valid_text: F1 (William)")

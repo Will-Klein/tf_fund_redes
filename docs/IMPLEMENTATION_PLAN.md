@@ -1,8 +1,8 @@
 # IMPLEMENTATION_PLAN — Plano técnico detalhado
 
 > Status: **aprovado por William em 2026-11-19; F0 concluída** (o resto ainda não foi implementado) (revisado em 2026-11-19 com G = 6,
-> ambiente VDI e divisão William/Leonardo/Frederico; revisão geral contra o enunciado feita na mesma
-> data, ver `DECISIONS.md` D32–D36).
+> ambiente VDI; revisão geral contra o enunciado feita na mesma data, ver `DECISIONS.md` D32–D36).
+> 2026-11-20: Leonardo saiu, grupo virou trio; donos e topologia `grupo` atualizados (D41, D42).
 > IDs de requisito (RFxx) definidos em [`PROJECT_CONTEXT.md §2`](PROJECT_CONTEXT.md).
 > Decisões/interpretações (Dxx) em [`DECISIONS.md`](DECISIONS.md).
 
@@ -112,8 +112,8 @@ Texto simples, uma diretiva por linha, `#` inicia comentário, linhas vazias ign
 endereco 10.6.1.1
 porta 6000                      # opcional; padrão 6000
 # vizinho <IP real> <porta UDP> <custo>
-vizinho 192.168.0.12 6000 1     # R2 (Leonardo)
-vizinho 192.168.0.13 6000 7     # R3 (Frederico)
+vizinho 192.168.0.12 6000 1     # R2 (Frederico)
+vizinho 192.168.0.13 6000 5     # R3 (Gustavo)
 ```
 
 Validação (erro claro com nº da linha, e o programa não inicia): `endereco` obrigatório e IPv4
@@ -129,7 +129,7 @@ mesmo custo do lado de lá).
 
 Para cada item: **o que** · **requisito** · **teste**.
 
-### 4.1 `packets.py` — Leonardo (primeira entrega, todos dependem)
+### 4.1 `packets.py` — William (primeira entrega, todos dependem)
 
 ```python
 Hello = namedtuple('Hello', 'addr')
@@ -154,7 +154,7 @@ def valid_text(msg) -> bool       # só caracteres ASCII, sem ':' (D13)
   `LSP:10.3.1.1:1767712001:` (lista vazia); malformados: tipo desconhecido, campos a mais/menos,
   TTL/seq/id/custo não numérico, custo 0, endereço inválido, mensagem com acento, bytes não ASCII.
 
-### 4.2 `config.py` — Leonardo
+### 4.2 `config.py` — William
 
 ```python
 NeighborConf = namedtuple('NeighborConf', 'ip port cost')
@@ -213,7 +213,7 @@ class Router:
 | Recálculo quando a LSDB muda | RF17 | unit: tabela atualizada após cada caso acima |
 | Exceção num handler não derruba a thread | RF04, D33 | unit: datagrama que provoca erro → log ERRO e o próximo datagrama é processado |
 
-### 4.5 `forwarding.py` — Leonardo
+### 4.5 `forwarding.py` — Frederico
 
 ```python
 class Forwarder:
@@ -245,18 +245,18 @@ Comandos `tabela`, `lsdb`, `vizinhos`, `msg <destino> <texto>`, `ping <destino> 
 resto da linha (pode ter espaços). Validações antes de enviar: destino é endereço virtual válido;
 TTL inteiro ≥ 1; texto válido (`valid_text`). Colunas exigidas pelo enunciado:
 `tabela` = rede, próximo salto, custo · `lsdb` = origem, nº de sequência, vizinhos e custos ·
-`vizinhos` = só os **ativos**: endereço virtual, IP real, porta. Exemplo (R1 da topologia `grupo`):
+`vizinhos` = só os **ativos**: endereço virtual, IP real, porta. Exemplo (R1 da topologia `grupo`, trio):
 
 ```
 > tabela
 Rede destino     Próximo salto   Custo
 10.6.2.0/24      10.6.2.1        1
-10.6.4.0/24      10.6.2.1        3
-10.6.3.0/24      10.6.2.1        6
+10.6.3.0/24      10.6.2.1        3
 > lsdb
 Origem      Seq          Vizinhos (custo)
-10.6.1.1    1795111000   10.6.2.1=1, 10.6.3.1=7
-10.6.2.1    1795111003   10.6.1.1=1, 10.6.4.1=2
+10.6.1.1    1795111000   10.6.2.1=1, 10.6.3.1=5
+10.6.2.1    1795111003   10.6.1.1=1, 10.6.3.1=2
+10.6.3.1    1795111002   10.6.1.1=5, 10.6.2.1=2
 > vizinhos
 Endereço virtual   IP real          Porta
 10.6.2.1           192.168.0.12     6000
@@ -319,26 +319,24 @@ R1 para os demais (útil para a Q3):
 Caminhos alternativos: R1→R3 direto (4) contra via R2 (3); R1→R4 via R2–R3–R5 (11).
 Sem R2: R3 via R3 (4); R5 via R3 (7); R4 via R3 (12). (Frederico confirma à mão na Q1.)
 
-**`grupo`** (apresentação; 4 VMs da VDI). Anel:
+**`grupo`** (apresentação; somos trio desde 2026-11-20 → **3 VMs da VDI**, D41/D42). Triângulo:
 
 ```
-   R1 (William 10.6.1.1) ──1── R2 (Leonardo 10.6.2.1)
-          │                          │
-          7                          2
-          │                          │
-   R3 (Frederico 10.6.3.1) ──3── R4 (Gustavo 10.6.4.1)
+        R1 (William 10.6.1.1)
+          1 /          \ 5
+           /            \
+   R2 (Frederico 10.6.2.1) ──2── R3 (Gustavo 10.6.3.1)
 ```
 
-| Roteador | Tabela esperada (rede → próximo salto, custo) |
-|---|---|
-| R1 | 10.6.2.0/24 → 10.6.2.1, 1 · 10.6.4.0/24 → 10.6.2.1, 3 · 10.6.3.0/24 → 10.6.2.1, 6 |
-| R2 | 10.6.1.0/24 → 10.6.1.1, 1 · 10.6.4.0/24 → 10.6.4.1, 2 · 10.6.3.0/24 → 10.6.4.1, 5 |
-| R3 | 10.6.4.0/24 → 10.6.4.1, 3 · 10.6.2.0/24 → 10.6.4.1, 5 · 10.6.1.0/24 → 10.6.4.1, 6 |
-| R4 | 10.6.2.0/24 → 10.6.2.1, 2 · 10.6.1.0/24 → 10.6.2.1, 3 · 10.6.3.0/24 → 10.6.3.1, 3 |
+| Roteador | Tabela esperada (rede → próximo salto, custo) | Sem R2 | Sem o enlace R1–R2 |
+|---|---|---|---|
+| R1 | 10.6.2.0/24 → 10.6.2.1, 1 · 10.6.3.0/24 → 10.6.2.1, 3 | 10.6.3.0/24 → 10.6.3.1, 5 | 10.6.3.0/24 → 10.6.3.1, 5 · 10.6.2.0/24 → 10.6.3.1, 7 |
+| R2 | 10.6.1.0/24 → 10.6.1.1, 1 · 10.6.3.0/24 → 10.6.3.1, 2 | — | 10.6.3.0/24 → 10.6.3.1, 2 · 10.6.1.0/24 → 10.6.3.1, 7 |
+| R3 | 10.6.2.0/24 → 10.6.2.1, 2 · 10.6.1.0/24 → 10.6.2.1, 3 | 10.6.1.0/24 → 10.6.1.1, 5 | 10.6.2.0/24 → 10.6.2.1, 2 · 10.6.1.0/24 → 10.6.1.1, 5 |
 
-Em R1, `ping 10.6.3.1` com TTL 1, 2, 3 mostra R2 (tempo excedido), R4 (tempo excedido) e o eco de
-R3 — caminho R1→R2→R4→R3 (6) em vez do enlace direto (7). Derrubando R2: R3 via R3 (7), R4 via R3 (10)
-— é o caminho alternativo exigido. (IPs reais das VMs preenchidos no dia.)
+Em R1, `ping 10.6.3.1` com TTL 1 e 2 mostra R2 (tempo excedido) e o eco de R3 — caminho R1→R2→R3
+(3) em vez do enlace direto (5). Derrubando R2 (ou o enlace R1–R2), R1→R3 passa a usar o enlace
+direto — é o caminho alternativo exigido. (IPs reais das VMs preenchidos no dia.)
 
 ---
 
@@ -347,10 +345,10 @@ R3 — caminho R1→R2→R4→R3 (6) em vez do enlace direto (7). Derrubando R2:
 | Fase | Entregas | Concluída quando |
 |---|---|---|
 | **F0** Fundação (William) | Estrutura de pastas, stubs com as assinaturas da §4, `.gitignore`, `README` inicial, `configs/local5`, esqueleto de testes; teste de fumaça da VDI (`DECISIONS.md`, D24) | Todos os módulos importam; `python3 router.py` sem argumentos mostra o uso; `python3 -m unittest discover tests` passa (`tests/test_interfaces.py`: interfaces, constantes do enunciado, simetria e custos das configs); grupo validou as interfaces; teste de fumaça da VDI passou (ou plano B acionado). *Ajustado na execução: "iniciar com uma config real" dependia do `config.py` (Leonardo, F1) e passou para a F1.* |
-| **F1** Base (paralelo) | Leonardo: `packets.py`, `config.py` · Frederico: `dijkstra.py` · William (P2): `log.py` e `cli.run` mínimo (só `sair`; o resto na F2) · William (P1): Router base + vizinhança | Testes unitários de packets/config/dijkstra passando; `python3 router.py configs/local5/r1.conf` inicia e encerra com `sair`; 2 roteadores locais ficam ativos um para o outro e detectam inatividade em ~20 s (log) |
-| **F2** Protocolo (paralelo) | William (P1): LSP/LSDB/inundação/sync/aging · Leonardo: `forwarding.py` + ping · William (P2): `cli.py` | Testes unitários de LSDB e forwarding passando; 5 roteadores locais com LSDB idêntica e tabelas = esperado da §5 |
+| **F1** Base (paralelo) | William (antes Leonardo): `packets.py`, `config.py` · Frederico: `dijkstra.py` · William (P2): `log.py` e `cli.run` mínimo (só `sair`; o resto na F2) · William (P1): Router base + vizinhança | Testes unitários de packets/config/dijkstra passando; `python3 router.py configs/local5/r1.conf` inicia e encerra com `sair`; 2 roteadores locais ficam ativos um para o outro e detectam inatividade em ~20 s (log) |
+| **F2** Protocolo (paralelo) | William (P1): LSP/LSDB/inundação/sync/aging · Frederico (antes Leonardo): `forwarding.py` + ping · William (P2): `cli.py` | Testes unitários de LSDB e forwarding passando; 5 roteadores locais com LSDB idêntica e tabelas = esperado da §5 |
 | **F3** Integração (P2 coordena) | `tests/integration_local.py`; correções | Integração passa 3 vezes seguidas; todos os RF conferidos localmente; `PROGRESS.md` atualizado |
-| **F4** Rede real | Rede do grupo nas 4 VMs da VDI; interoperabilidade com outro grupo da VDI; capturas `.pcapng` (podem ser feitas em uma máquina, com `local5`) | Rede do grupo de 4 VMs funcionando; 1 sessão de interop registrada em log |
+| **F4** Rede real | Rede do grupo nas 3 VMs da VDI; interoperabilidade com outro grupo da VDI; capturas `.pcapng` (podem ser feitas em uma máquina, com `local5`) | Rede do grupo de 3 VMs funcionando; 1 sessão de interop registrada em log |
 | **F5** Entrega | Relatório PDF, README final, `.zip`; ensaio da apresentação; auditoria final | `.zip` descompactado em pasta limpa executa; auditoria com todos os critérios "Atendido" |
 
 Dependências: `packets.py` → (router, forwarding); `dijkstra.py` → recálculo; Router base →
@@ -388,22 +386,22 @@ forwarding/CLI. Até a dependência ficar pronta, usar o stub da F0.
 
 | Parte | Quem conduz | Conceitos que explica |
 |---|---|---|
-| Abertura, visão geral e condução do roteiro da demo e da interop | **Leonardo** | Como os roteadores se comunicam (UDP, formatos), visão do todo |
-| Encaminhamento, TTL, ICMP, ping | **Leonardo** | Encaminhamento de pacotes, erros ICMP |
-| Arquitetura, threads, socket único, HELLO, LSP/inundação/sync/aging | William | Descoberta de enlaces, compartilhamento de estado, construção da topologia |
-| Dijkstra e tabela | Frederico | Cálculo de caminhos, atualização de tabelas |
-| Vizinhança (HELLO, detecção de falha) ao mostrar a reconvergência; operação de R4 | Gustavo | Deve saber explicar qualquer módulo se perguntado |
+| Abertura, visão geral e condução do roteiro da demo e da interop | **William** | Como os roteadores se comunicam (UDP, formatos), visão do todo |
+| Arquitetura, threads, socket único, pacotes, LSP/inundação/sync/aging | William | Descoberta de enlaces, compartilhamento de estado, construção da topologia |
+| Dijkstra, tabela, encaminhamento, TTL, ICMP, ping | Frederico | Cálculo de caminhos, atualização de tabelas, encaminhamento de pacotes |
+| Vizinhança (HELLO, detecção de falha) ao mostrar a reconvergência; operação de R3 | Gustavo | Deve saber explicar qualquer módulo se perguntado |
 
-Cada um opera seu próprio roteador (R1 William, R2 Leonardo, R3 Frederico, R4 Gustavo).
+Cada um opera seu próprio roteador (R1 William, R2 Frederico, R3 Gustavo).
 Todos estudam todos os módulos (regra da IA): sessão de "perguntas do professor" simulada na F5.
-O roteiro detalhado (`docs/APRESENTACAO.md`) é escrito pelo Leonardo na F5.
+O roteiro detalhado (`docs/APRESENTACAO.md`) é escrito pelo William na F5 (antes: Leonardo).
 
 ---
 
 ## 10. Checklists operacionais (não são código, mas valem nota)
 
 **Regras do enunciado que exigem ação do grupo**
-- [ ] Informar no Moodle os integrantes e a data de apresentação (e o ambiente, se o Moodle pedir).
+- [ ] Informar no Moodle os integrantes (trio: William, Frederico, Gustavo; tirar o Leonardo) e a
+      data de apresentação (e o ambiente, se o Moodle pedir); avisar o professor da mudança.
 - [ ] Prazo de entrega: **antes do início da primeira aula de apresentação** (de qualquer grupo, não
       só da nossa). Atraso não é aceito.
 - [ ] Testes de interoperabilidade com outros grupos: trocar só pacotes, **nunca código** (cópia ⇒
@@ -413,7 +411,7 @@ O roteiro detalhado (`docs/APRESENTACAO.md`) é escrito pelo Leonardo na F5.
 
 **Antes da apresentação (rede montada no início do horário)**
 - [ ] Cada VM: código atualizado, `python3 --version` ≥ 3.8, IP anotado, config com os IPs do dia.
-- [ ] Subir os 4 roteadores, esperar ~10 s, conferir `vizinhos`/`lsdb`/`tabela` com a §5.
+- [ ] Subir os 3 roteadores, esperar ~10 s, conferir `vizinhos`/`lsdb`/`tabela` com a §5.
 
 **Comportamentos do protocolo que o professor pode perguntar (são do enunciado, não defeitos)**
 - Ao derrubar um roteador, a rota só muda depois de **até ~20 s** (detecção por ausência de HELLO).

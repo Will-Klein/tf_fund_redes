@@ -1,6 +1,6 @@
 """Testes do cli.py (dono: William), com um roteador e um forwarder falsos.
 
-Os testes marcados com PRECISA_PACKETS validam endereço/texto usando o packets.py do Leonardo.
+Os testes marcados com PRECISA_PACKETS validam endereço/texto usando o packets.py (William).
 Enquanto ele não estiver pronto (F1), esses testes são pulados; passam a rodar sozinhos depois.
 """
 
@@ -22,7 +22,7 @@ def packets_pronto():
         return False
 
 
-PRECISA_PACKETS = unittest.skipUnless(packets_pronto(), "aguarda packets.py (F1, Leonardo)")
+PRECISA_PACKETS = unittest.skipUnless(packets_pronto(), "aguarda packets.py (F1, William)")
 
 
 class RouterFalso:
@@ -56,7 +56,7 @@ class ForwarderFalso:
         return "resposta de %s" % dst
 
 
-# Estado de R1 na topologia "grupo" (docs/IMPLEMENTATION_PLAN.md §5)
+# Estado de R1 num anel de 4 roteadores (R1-R2=1, R2-R4=2, R4-R3=3, R3-R1=7), só para os testes
 TABELA_R1 = {"10.6.3.0/24": ("10.6.2.1", 6), "10.6.2.0/24": ("10.6.2.1", 1),
              "10.6.4.0/24": ("10.6.2.1", 3)}
 LSDB_R1 = {"10.6.2.1": (1795111003, {"10.6.4.1": 2, "10.6.1.1": 1}),
