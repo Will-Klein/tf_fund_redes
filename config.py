@@ -1,6 +1,6 @@
 """Leitura e validação do arquivo de configuração do roteador.
 
-Dono: Leonardo (fase F1). Interface fixada na F0; ver docs/IMPLEMENTATION_PLAN.md §3 e §4.2.
+Dono: William (fase F1). Interface fixada na F0; ver docs/IMPLEMENTATION_PLAN.md §3 e §4.2.
 
 Formato (D03): texto, uma diretiva por linha, '#' inicia comentário, linhas vazias ignoradas.
 
@@ -32,4 +32,4 @@ class ConfigError(Exception):
 
 def load_config(path):
     """Lê o arquivo em 'path' e devolve um Config. Levanta ConfigError se houver erro."""
-    raise NotImplementedError("config.load_config: F1 (Leonardo)")
+    raise NotImplementedError("config.load_config: F1 (William)")

@@ -1,6 +1,6 @@
 """Encaminhamento de DADOS e ICMP, mensagens de erro e o comando ping.
 
-Dono: Leonardo (fase F2). Interface fixada na F0; ver docs/IMPLEMENTATION_PLAN.md §4.5.
+Dono: Frederico (fase F2). Interface fixada na F0; ver docs/IMPLEMENTATION_PLAN.md §4.5.
 
 Regras (enunciado, "Encaminhamento"):
 
@@ -48,15 +48,15 @@ class Forwarder:
 
     def send_data(self, dst, text):
         """Comando 'msg': cria e envia um DADOS. Devolve o texto a exibir ao usuário."""
-        raise NotImplementedError("Forwarder.send_data: F2 (Leonardo)")
+        raise NotImplementedError("Forwarder.send_data: F2 (Frederico)")
 
     def ping(self, dst, ttl=TTL_INICIAL):
         """Comando 'ping': envia ICMP 8 e espera até PING_TIMEOUT pela resposta (0, 11 ou 3).
 
         Devolve o texto a exibir: tipo da resposta, quem enviou e o RTT, ou timeout.
         """
-        raise NotImplementedError("Forwarder.ping: F2 (Leonardo)")
+        raise NotImplementedError("Forwarder.ping: F2 (Frederico)")
 
     def handle(self, pkt, peer):
         """Trata um Dados ou Icmp recebido do vizinho 'peer' = (IP real, porta)."""
-        raise NotImplementedError("Forwarder.handle: F2 (Leonardo)")
+        raise NotImplementedError("Forwarder.handle: F2 (Frederico)")

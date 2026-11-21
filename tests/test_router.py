@@ -1,7 +1,7 @@
 """Testes do router.py (dono: William): vizinhança, LSP, inundação, sincronização, envelhecimento e tabela.
 
 O Router roda sem rede: socket falso (guarda o que foi enviado) e relógio falso (avança à mão).
-Quase tudo aqui usa o packets.py (Leonardo) e o dijkstra.py (Frederico). Enquanto eles não
+Quase tudo aqui usa o packets.py (William) e o dijkstra.py (Frederico). Enquanto eles não
 estiverem prontos (F1), esses testes são pulados; passam a rodar sozinhos depois.
 """
 
@@ -29,9 +29,9 @@ PRONTOS = (modulo_pronto(lambda: packets.encode(packets.Hello("10.6.1.1")))
            and modulo_pronto(lambda: packets.parse(b"HELLO:10.6.1.1"))
            and modulo_pronto(lambda: packets.network_of("10.6.1.1"))
            and modulo_pronto(lambda: dijkstra.dijkstra({}, "10.6.1.1")))
-PRECISA_MODULOS = unittest.skipUnless(PRONTOS, "aguarda packets.py (Leonardo) e dijkstra.py (Frederico)")
+PRECISA_MODULOS = unittest.skipUnless(PRONTOS, "aguarda packets.py (William)")
 
-# R1 da topologia "grupo" (docs/IMPLEMENTATION_PLAN.md §5), com portas locais
+# R1 de um anel de 4 roteadores usado só nos testes (R1-R2=1, R2-R4=2, R4-R3=3, R3-R1=7)
 R2 = ("127.0.0.1", 6002)   # 10.6.2.1, custo 1
 R3 = ("127.0.0.1", 6003)   # 10.6.3.1, custo 7
 DESCONHECIDO = ("127.0.0.1", 6999)
@@ -306,7 +306,7 @@ class TestEnvelhecimento(unittest.TestCase):
 @PRECISA_MODULOS
 class TestTabela(unittest.TestCase):
     def montar_grupo(self):
-        """R1 recebe os LSPs da topologia "grupo": R1-R2=1, R2-R4=2, R4-R3=3, R3-R1=7."""
+        """R1 recebe os LSPs do anel de 4 roteadores dos testes: R1-R2=1, R2-R4=2, R4-R3=3, R3-R1=7."""
         r, sock, relogio, logger = criar_r1()
         hello(r, R2, "10.6.2.1")
         hello(r, R3, "10.6.3.1")
@@ -315,7 +315,7 @@ class TestTabela(unittest.TestCase):
         lsp(r, R3, "10.6.3.1", 602, {"10.6.4.1": 3, "10.6.1.1": 7})
         return r, sock, relogio, logger
 
-    def test_tabela_igual_a_esperada_no_plano(self):
+    def test_tabela_igual_a_esperada_no_anel(self):
         r, _, _, logger = self.montar_grupo()
         self.assertEqual(r.get_table(), {"10.6.2.0/24": ("10.6.2.1", 1),
                                          "10.6.4.0/24": ("10.6.2.1", 3),

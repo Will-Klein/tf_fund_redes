@@ -5,8 +5,9 @@
 > leva o trabalho a **nota zero**. Cada um precisa conhecer também as partes que não escreveu.
 >
 > Cada dono escreve a parte dele. Parte 1 (esta): `router.py`, `log.py` e `cli.py`, escritos pelo
-> William. Parte 3 (`dijkstra.py`, Frederico) já escrita. Partes pendentes: `packets.py`,
-> `config.py` e `forwarding.py` (Leonardo).
+> William. Parte 3 (`dijkstra.py`, Frederico) já escrita. Parte 2 pendente: `packets.py` e
+> `config.py` (William) e `forwarding.py` (Frederico). Desde 2026-11-20 somos trio: William,
+> Frederico e Gustavo (o Leonardo saiu do grupo).
 >
 > Como estudar: leia uma seção, abra o arquivo ao lado e encontre a função citada. No fim há
 > perguntas prováveis do professor e uma lista "consigo explicar...?" para conferir.
@@ -25,7 +26,7 @@ pacotes são texto ASCII com campos separados por `:`. O ciclo completo:
 3. **Inunda os LSPs**: o LSP de outro roteador que chega é repassado aos demais vizinhos. Assim
    todos acabam com a **mesma LSDB**, isto é, a topologia inteira (seção 5).
 4. **Calcula a tabela** com Dijkstra sobre a LSDB (seção 6).
-5. **Encaminha** DADOS e ICMP usando a tabela (é o `forwarding.py`, do Leonardo).
+5. **Encaminha** DADOS e ICMP usando a tabela (é o `forwarding.py`, do Frederico).
 6. **Mostra tudo no terminal e no log** (seções 8 e 9).
 
 Isso é **estado de enlace**: cada roteador conhece o mapa inteiro e calcula sozinho os caminhos.
@@ -36,14 +37,14 @@ e confia na conta deles; ninguém tem o mapa.
 
 ```
 router.py  main()
-  ├─ config.load_config()        lê o arquivo de configuração           (Leonardo)
+  ├─ config.load_config()        lê o arquivo de configuração           (William)
   ├─ Logger(...)                 log.py: abre logs/<endereço>.log       (William)
   ├─ Router(...)                 o estado do roteador                   (William)
-  ├─ Forwarder(router)           encaminhamento e ping                  (Leonardo)
+  ├─ Forwarder(router)           encaminhamento e ping                  (Frederico)
   ├─ router.start()              socket + 1º HELLO + 2 threads
   └─ cli.run(router, forwarder)  lê os comandos do usuário              (William)
 
-Router usa: packets.parse/encode (ler e montar pacotes, Leonardo)
+Router usa: packets.parse/encode (ler e montar pacotes, William)
             dijkstra.dijkstra    (calcular caminhos, Frederico)
 ```
 
@@ -182,7 +183,8 @@ endereço. É assim que um endereço virtual vira um envio UDP de verdade.
 
 ### 10. Exemplo completo: a rede do grupo
 
-Topologia: R1–R2 = 1, R2–R4 = 2, R4–R3 = 3, R3–R1 = 7 (plano §5).
+Somos trio: 3 roteadores em triângulo (plano §5, D42). R1 = William, R2 = Frederico, R3 = Gustavo.
+Enlaces: R1–R2 = 1, R2–R3 = 2, R1–R3 = 5.
 
 **Subida (cerca de 5 s até convergir):**
 1. Cada roteador liga e manda HELLO aos vizinhos configurados. Quem ainda não ligou não recebe; tudo bem.
@@ -190,17 +192,19 @@ Topologia: R1–R2 = 1, R2–R4 = 2, R4–R3 = 3, R3–R1 = 7 (plano §5).
    a R2 → em seguida manda a R2 cópia de toda a sua LSDB (sincronização).
 3. R2 faz o mesmo com R1. O LSP de R2 chega a R1 → regra 3: é novo → R1 guarda, repassa a R3 (se
    já estiver ativo) e recalcula a tabela.
-4. Depois de alguns HELLOs (≤ 5 s), todos têm os 4 LSPs. A tabela de R1 fica: R2 via R2 (1),
-   R4 via R2 (3), R3 via R2 (6, pelo caminho R1→R2→R4→R3, mais barato que o enlace direto de 7).
+4. Depois de alguns HELLOs (≤ 5 s), todos têm os 3 LSPs. A tabela de R1 fica: R2 via R2 (1) e
+   R3 via R2 (3, pelo caminho R1→R2→R3, mais barato que o enlace direto de 5). Por isso, na demo,
+   `ping 10.6.3.1 1` responde "tempo excedido" de R2, e `ping 10.6.3.1 2` responde o eco de R3.
 
 **Queda de R2 (o professor encerra o processo):**
 1. R2 para de mandar HELLO. O último saiu, no máximo, 5 s antes da queda.
-2. Entre 15 e 20 s depois da queda, R1 e R4 marcam R2 **INATIVO**, cada um no seu tempo, e geram LSPs sem R2.
-3. **Estado transitório:** se R1 detectar antes de R4, por alguns instantes o LSP antigo de R4
-   ainda diz "R4–R2 existe", e R1 calcula uma rota até R2 por R3 e R4 (custo 12). Quando o LSP novo
-   de R4 chega, essa rota some. É normal, e é um bom exemplo para a Q3 e a Q6.
-4. Tabela final de R1: R3 via R3 (7), R4 via R3 (10). O LSP antigo de R2 continua na `lsdb` até
-   envelhecer (90 s), mas não aparece na tabela, porque ninguém mais tem aresta até R2.
+2. Entre 15 e 20 s depois da queda, R1 e R3 marcam R2 **INATIVO**, cada um no seu tempo, e geram LSPs sem R2.
+3. **Estado transitório:** se R1 detectar antes de R3, por alguns instantes o LSP antigo de R3
+   ainda diz "R3–R2 existe", e R1 calcula uma rota até R2 passando por R3 (custo 5 + 2 = 7). Quando
+   o LSP novo de R3 chega, essa rota some. É normal, e é um bom exemplo para a Q3 e a Q6.
+4. Tabela final de R1: R3 via R3 (5), pelo enlace direto — o caminho alternativo. O LSP antigo de
+   R2 continua na `lsdb` até envelhecer (90 s), mas não aparece na tabela, porque ninguém mais tem
+   aresta até R2.
 5. **Reinício de R2** (depois de os vizinhos o marcarem inativo): ele volta com seq = hora atual,
    maior que o antigo; os vizinhos o veem ficar ativo, fazem a sincronização, e as tabelas voltam.
 
@@ -270,9 +274,9 @@ log dos outros com `tail -f logs/10.6.1.1.log`.
 
 ---
 
-## Parte 2 — `packets.py`, `config.py`, `forwarding.py` (Leonardo)
+## Parte 2 — `packets.py` e `config.py` (William), `forwarding.py` (Frederico)
 
-*A escrever pelo Leonardo quando os módulos estiverem prontos.*
+*A escrever por cada dono quando os módulos estiverem prontos.*
 
 ## Parte 3 — `dijkstra.py` (Frederico)
 

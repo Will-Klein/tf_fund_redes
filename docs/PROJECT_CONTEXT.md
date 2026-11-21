@@ -9,10 +9,11 @@
 > - Andamento: [`PROGRESS.md`](PROGRESS.md)
 > - Guia de estudo do código (todos precisam saber explicar tudo): [`GUIA_ESTUDO.md`](GUIA_ESTUDO.md)
 >
-> Última atualização: 2026-11-19 (plano aprovado; **F0 concluída** — esqueleto com interfaces; próxima: F1).
+> Última atualização: 2026-11-20 (Leonardo saiu do grupo: grupo virou **trio**, tarefas redivididas na §7).
 >
 > **Dados fixos:** Grupo **G = 6** · ambiente **VDI** · Python 3 (stdlib) · integrantes: William
-> (faz também a parte do Gustavo), Leonardo, Frederico e Gustavo (apresenta e opera R4).
+> (faz também a parte do Gustavo), Frederico e Gustavo (apresenta e opera R3). **Trio** desde
+> 2026-11-20: Leonardo saiu do grupo; a apresentação usa 3 roteadores (enunciado: "3 nos trios").
 > **Regra de desempate:** quando o enunciado não define algo, escolher o que cumpre o texto e é mais
 > simples de explicar (ver `DECISIONS.md`).
 
@@ -109,8 +110,9 @@ inundação+recálculo, relação com timers do HELLO); Q4 nº de sequência e r
 Q5 perda de LSP e mecanismo de recuperação; Q6 por que TTL e exemplo de laço na convergência.
 
 ### Apresentação
-- Rede do grupo **montada e funcionando** no início do horário (4 roteadores, 1 por integrante,
-  custos diferentes, ≥ 1 caminho alternativo, todos no mesmo ambiente).
+- Rede do grupo **montada e funcionando** no início do horário ("4 roteadores nos quartetos, 3 nos
+  trios": somos trio → **3 roteadores**, 1 por integrante, custos diferentes, ≥ 1 caminho
+  alternativo, todos no mesmo ambiente).
 - Roteiro (~10 min): `vizinhos`/`lsdb`/`tabela` em cada roteador; `ping` TTL 1,2,3… até o mais
   distante + `msg`; `ping` para rede inexistente; professor derruba roteador/enlace → reconvergência
   + `ping` TTL crescente com novo caminho → roteador reiniciado; perguntas sobre o código.
@@ -148,7 +150,7 @@ Q5 perda de LSP e mecanismo de recuperação; Q6 por que TTL e exemplo de laço 
 Detalhes e interfaces em `IMPLEMENTATION_PLAN.md`; justificativas em `DECISIONS.md`.
 
 - **Ambiente:** **VDI** (D24), validado por um teste de fumaça; plano B = access point, com o mesmo código.
-- **Endereços:** R1 William `10.6.1.1`, R2 Leonardo `10.6.2.1`, R3 Frederico `10.6.3.1`, R4 Gustavo `10.6.4.1` (D27).
+- **Endereços:** R1 William `10.6.1.1`, R2 Frederico `10.6.2.1`, R3 Gustavo `10.6.3.1` (D41).
 - **Linguagem:** Python 3, **só biblioteca padrão** (`socket`, `threading`, `heapq`, `time`, `unittest`).
   Obrigatório na VDI. Código compatível com Python 3.8+.
 - **Concorrência:** 3 threads — (1) recepção UDP (bloqueia em `recvfrom`), (2) temporizador
@@ -205,25 +207,33 @@ ainda. Lista viva em `PROGRESS.md`.
 
 ## 7. Divisão de tarefas
 
-William acumula **Pessoa 1 + Pessoa 2**. Princípio: **um dono por arquivo** (evita conflito de
-merge e garante que cada um saiba explicar o que escreveu); interfaces fixadas antes do paralelismo.
+**Redivisão de 2026-11-20:** o Leonardo saiu do grupo, que virou **trio** (William, Frederico,
+Gustavo). Pedido de William: o relatório passa do Frederico para ele, e a parte do Leonardo é
+repartida entre os dois que programam, com William ficando com mais (como já combinado, por ele
+também fazer a parte do Gustavo). A divisão original está no histórico do git.
+
+Princípio mantido: **um dono por arquivo** (evita conflito de merge e garante que cada um saiba
+explicar o que escreveu); interfaces já fixadas.
 
 | Responsável | Tarefas | Arquivos/módulos | Entregáveis | Dependências |
 |---|---|---|---|---|
-| **P1 — William** (núcleo de controle) | Esqueleto e interfaces; classe Router (socket único, threads, lock, despacho); vizinhança (HELLO, ativo/inativo); LSP próprio (seq, renovação), recebimento (regras 1–3), inundação, sincronização, envelhecimento; disparo de recálculo | `router.py`, `tests/test_router.py` | Critérios 1 e 2 (25%) funcionando com testes | `packets.py` (P3), `dijkstra.py` (P4) — usa stubs até ficarem prontos |
-| **P2 — William** (integração e qualidade) | Logger; CLI (`tabela`, `lsdb`, `vizinhos`, `msg`, `ping`); configs das topologias; teste de integração com 5 roteadores; README; teste de interoperabilidade com outro grupo; revisão de todos os PRs; auditoria final e `.zip` | `log.py`, `cli.py`, `configs/`, `tests/integration_local.py`, `scripts/`, `README.md` | Critérios 6 e 7 (15%), README, entrega | Todos os módulos (integra no fim de cada fase) |
-| **P3 — Leonardo** (plano de dados + condução da apresentação) | Formato/parsing estrito dos pacotes e validação; leitura da config; encaminhamento DADOS/ICMP com TTL; erros 11/3 (sem erro p/ erro); eco; `ping` pendente (id, RTT, timeout 2 s). Conduz o roteiro da apresentação | `packets.py`, `config.py`, `forwarding.py`, `tests/test_packets.py`, `tests/test_config.py`, `tests/test_forwarding.py`, `docs/APRESENTACAO.md` (F5) | Critérios 4 e 5 (25%) + RF04 + roteiro da demo | `packets.py` é a **primeira** entrega (todos dependem dele) |
-| **P4 — Frederico** (cálculo e relatório) | Dijkstra; testes de Dijkstra; liderar o relatório: topologia de 5 roteadores + figura, experimentos Q1–Q3 (Q1 com a tabela de iterações feita à mão), respostas Q4–Q6, capturas `.pcapng`, PDF | `dijkstra.py`, `tests/test_dijkstra.py`, `docs/relatorio/` | Critério 3 (15%) + critério 8 (20%) | Experimentos do relatório dependem do sistema integrado (F3); Q4–Q6 e o passo a passo podem começar já |
-| **Gustavo** | Sem módulo de código neste trabalho (troca combinada: William faz a parte dele aqui, ele faz a de William em outro trabalho). Apresenta com o grupo, opera o roteador R4 e explica a vizinhança na reconvergência; estuda todo o código | — | Presença e domínio do código | Regra do enunciado: todos presentes e capazes de explicar qualquer parte |
+| **William** (núcleo, pacotes, integração, relatório, apresentação) | **Já entregue:** Router (vizinhança, LSP, inundação, sync, envelhecimento, tabela), logger, CLI, teste de integração, guia parte 1. **A fazer, nesta ordem:** (1) `packets.py` + `config.py` com testes — primeiro, porque destravam os testes do roteador, o `forwarding.py` do Frederico e os experimentos do relatório; (2) relatório inteiro: figura da `local5`, Q1–Q6, experimentos, capturas `.pcapng`, PDF (a tabela de iterações da Q1 vem da parte 3 do guia, do Frederico); (3) roteiro e condução da apresentação; guia parte 2 (packets/config); rede nas 3 VMs, interoperabilidade, README final, auditoria e `.zip`; revisão dos PRs | `router.py`, `log.py`, `cli.py`, `packets.py`, `config.py`, `configs/`, `tests/` (exceto dijkstra/forwarding), `docs/relatorio/`, `docs/APRESENTACAO.md`, `README.md` | Critérios 1, 2, 6, 7 e 8 (60%) + leitura/validação de pacotes usada por todos | Nenhuma: o que falta dele não espera ninguém |
+| **Frederico** (cálculo de rotas e plano de dados) | **Já entregue:** Dijkstra, testes, guia parte 3. **A fazer:** `forwarding.py` + `tests/test_forwarding.py` (originar, entregar, encaminhar com TTL, ICMP 0/3/8/11, nunca erro sobre erro, `ping` com id, RTT e timeout de 2 s, textos do D40); guia parte 2 (forwarding); pendências da revisão do Dijkstra (teste de empate; "custos não negativos" no guia); revisar a Q1 do relatório e os PRs do William | `dijkstra.py`, `forwarding.py`, `tests/test_dijkstra.py`, `tests/test_forwarding.py` | Critérios 3, 4 e 5 (40%) | Interface já fixada (`route_for`, `is_local`, `send`, D40): pode começar já; os testes rodam quando o `packets.py` existir |
+| **Gustavo** | Sem módulo de código neste trabalho (troca combinada: William faz a parte dele aqui, ele faz a de William em outro trabalho). Apresenta com o grupo, opera o roteador R3 e explica a vizinhança na reconvergência; estuda todo o código | — | Presença e domínio do código | Regra do enunciado: todos presentes e capazes de explicar qualquer parte |
 
-**Por que assim:** o núcleo de controle (P1) é o caminho crítico e o de maior risco (25% + base
-para tudo); P2 concentra o que exige visão do todo (CLI, integração, interoperabilidade). P3 é a
-parte mais técnica depois do núcleo (parsing estrito, TTL, ICMP, ping com espera concorrente) e vai
-para o Leonardo, que também conduz a apresentação. P4 recebe um módulo puro e pequeno, compensado
-pelo relatório (20%), que é trabalho grande mas não-código, e vai para o Frederico.
+**Por que assim:**
+- **`packets.py` + `config.py` com o William:** são o bloqueio de tudo o que é dele (27 testes do
+  roteador, teste de integração, experimentos do relatório). Fazendo ele mesmo, nada do que é dele
+  espera outra pessoa. É o pedaço menor da parte do Leonardo.
+- **`forwarding.py` com o Frederico:** é o maior bloco de código que falta (critérios 4 e 5, 25%),
+  usa a tabela que o Dijkstra dele calcula e depende só de interfaces já fixadas, então ele pode
+  começar já, em paralelo.
+- **Carga:** William fica com o relatório (20%, grande) + pacotes/config + apresentação + integração
+  (60% dos critérios sob responsabilidade dele); Frederico, com Dijkstra (pronto) + forwarding (40%).
+  William com mais, como combinado.
 
-**Integração e revisão:** branch por pessoa, PR pequeno para `main`, revisão por William + mais um
-integrante (revisão cruzada também prepara para as perguntas). Pontos de integração ao fim de cada
+**Integração e revisão:** branch por pessoa, PR pequeno para `main`; cada um revisa o PR do outro
+(revisão cruzada também prepara para as perguntas). Pontos de integração ao fim de cada
 fase (ver `IMPLEMENTATION_PLAN.md §6`).
 
 ---
@@ -233,11 +243,11 @@ fase (ver `IMPLEMENTATION_PLAN.md §6`).
 | Fase | Conteúdo | Responsáveis |
 |---|---|---|
 | F0 | Esqueleto, interfaces (stubs), formato da config, `.gitignore`, estrutura de testes; teste de fumaça da VDI | William (+1 integrante no teste de fumaça) |
-| F1 | `packets.py` + `config.py`; `dijkstra.py`; `log.py`; Router base + vizinhança | Leonardo; Frederico; William (P2); William (P1) |
-| F2 | LSP/LSDB/inundação/sync/aging; `forwarding.py` + ping; `cli.py` | William (P1); Leonardo; William (P2) |
+| F1 | `packets.py` + `config.py`; `dijkstra.py` ✅; `log.py` ✅; Router base + vizinhança ✅ | William (packets/config, desde 2026-11-20); Frederico; William; William |
+| F2 | LSP/LSDB/inundação/sync/aging ✅; `forwarding.py` + ping; `cli.py` ✅ | William; Frederico (desde 2026-11-20); William |
 | F3 | Integração local com 5 roteadores; teste de integração; correções | Todos (William coordena) |
-| F4 | Rede do grupo nas 4 VMs; interoperabilidade com outro grupo da VDI; capturas | Todos |
-| F5 | Relatório, README, `.zip`; roteiro e ensaio da apresentação; auditoria final | Frederico (relatório), Leonardo (apresentação), William (auditoria) |
+| F4 | Rede do grupo nas 3 VMs; interoperabilidade com outro grupo da VDI; capturas | Todos |
+| F5 | Relatório, README, `.zip`; roteiro e ensaio da apresentação; auditoria final | William (relatório, apresentação, auditoria); Frederico revisa a Q1; ensaio com todos |
 
 ---
 
@@ -257,18 +267,22 @@ fase (ver `IMPLEMENTATION_PLAN.md §6`).
 ## 10. Dúvidas abertas e riscos
 
 Resolvidas em 2026-11-19: ambiente = VDI (D24); G = 6 conferido no Moodle (D25); sem cronograma
-(D28); integrantes Leonardo (P3), Frederico (P4) e Gustavo (R4); interpretações delegadas com a
+(D28); integrantes (trio desde 2026-11-20): William, Frederico e Gustavo (D41); interpretações delegadas com a
 regra de desempate (D05–D36); revisão geral do plano contra o enunciado (fim de `DECISIONS.md`).
 
-Ainda abertas (não impedem a F0):
-1. Resultado do teste de fumaça da VDI (Python ≥ 3.8, VMs se alcançam por UDP).
-2. Ver se o Moodle pede para registrar o ambiente; registrar integrantes e data de apresentação.
+Ainda abertas:
+1. **Atualizar o grupo no Moodle (tirar o Leonardo) e avisar o professor** de que viramos trio
+   (enunciado: "Trios serão aceitos apenas para fechar a divisão da turma").
+2. Resultado do teste de fumaça da VDI (Python ≥ 3.8, VMs se alcançam por UDP).
+3. Ver se o Moodle pede para registrar o ambiente; registrar integrantes e data de apresentação.
 
 Riscos principais:
 | Risco | Impacto | Mitigação |
 |---|---|---|
 | Integrante não explicar código (regra de IA) | **Nota zero** | Código simples e comentado; dono por módulo; revisão cruzada; ensaio de perguntas |
 | Incompatibilidade com outro grupo | Perde critério 7 (10%) | Formatos literais; testes com exemplos do enunciado; teste real antecipado |
+| Grupo virou trio sem aviso ao professor | O professor pode reorganizar os grupos ou estranhar 3 roteadores | Atualizar o Moodle e avisar o professor já |
+| Carga maior com 2 pessoas programando | Atraso no relatório (20%) ou no forwarding (25%) | Ordem definida na §7: `packets.py`/`config.py` primeiro; forwarding em paralelo; relatório teórico pode começar já |
 | Gustavo (que não escreve código neste trabalho) não saber explicar uma parte | Se ele não souber explicar o código questionado → **nota zero** para o trabalho | Incluí-lo nas revisões de PR e no ensaio de perguntas; ele estuda todos os módulos, não só a vizinhança |
 | VDI indisponível / VMs não se alcançam | Rede não sobe | Teste de fumaça na F0; plano B access point (mesmo código) |
 | IP da VM muda / várias interfaces | Rede não sobe na apresentação | Config fácil de editar; checklist pré-apresentação; bind em `0.0.0.0` |

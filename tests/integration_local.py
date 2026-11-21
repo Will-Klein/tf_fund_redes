@@ -43,7 +43,7 @@ SEM_R2 = {1: {3: (3, 4), 4: (3, 12), 5: (3, 7)},
           5: {1: (3, 7), 3: (3, 3), 4: (4, 5)}}
 GRAU = {1: 2, 2: 3, 3: 3, 4: 2, 5: 2}   # número de vizinhos de cada roteador
 
-FORWARDING_PENDENTE = "F2 (Leonardo)"   # texto do esboço do forwarding.py ainda não implementado
+FORWARDING_PENDENTE = "Forwarder.ping: F2"   # texto do esboço do forwarding.py ainda não implementado
 
 
 def end(n):
