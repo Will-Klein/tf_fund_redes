@@ -157,6 +157,11 @@ endereço. É assim que um endereço virtual vira um envio UDP de verdade.
   (`packets.MalformedPacket`) → descarta e loga.
 - `receive_loop` e `timer_loop` envolvem o trabalho em `try/except Exception` (D33): qualquer erro
   inesperado vira uma linha `[ERRO]` no log e a thread continua viva.
+- Exceção: `ConnectionResetError` no `recvfrom` é ignorado sem log (D44). Só acontece no Windows
+  (a VM da VDI): quando um vizinho cai, o HELLO que mandamos para ele volta como "porta
+  inalcançável", e o Windows avisa isso no `recvfrom` seguinte. Não é um pacote nem um defeito;
+  sem esse `except`, a tela encheria de `[ERRO]` a cada 5 s logo depois de o professor derrubar
+  um roteador. A queda continua sendo detectada pelos 20 s sem HELLO, como manda o enunciado.
 - `send()` captura `OSError` (erro de rede ao enviar).
 - `cli.run` também captura erro de um comando (D38).
 

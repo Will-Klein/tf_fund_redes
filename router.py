@@ -92,6 +92,11 @@ class Router:
             try:
                 data, peer = self.sock.recvfrom(TAMANHO_MAXIMO)
                 self.handle_datagram(data, peer)
+            except ConnectionResetError:
+                # Só no Windows (a VM da VDI): um HELLO enviado antes a um vizinho que caiu volta
+                # como "porta inalcançável", e o Windows avisa isso no recvfrom seguinte. Não é um
+                # pacote nem um erro do roteador: ignorar e continuar recebendo (D44).
+                continue
             except Exception as erro:
                 self.logger.log("ERRO", "recepcao: %r" % erro)
                 time.sleep(0.1)  # se o socket quebrar de vez, não gira sem parar

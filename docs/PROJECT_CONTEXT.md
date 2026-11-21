@@ -149,7 +149,8 @@ Q5 perda de LSP e mecanismo de recuperação; Q6 por que TTL e exemplo de laço 
 
 Detalhes e interfaces em `IMPLEMENTATION_PLAN.md`; justificativas em `DECISIONS.md`.
 
-- **Ambiente:** **VDI** (D24), validado por um teste de fumaça; plano B = access point, com o mesmo código.
+- **Ambiente:** **VDI** (D24): VM Windows com Python 3.13 (comando `py`), acesso por https://vdi.pucrs.br;
+  validado por um teste de fumaça (`docs/TESTE_VDI.md`); plano B = access point, com o mesmo código.
 - **Endereços:** R1 William `10.6.1.1`, R2 Frederico `10.6.2.1`, R3 Gustavo `10.6.3.1` (D41).
 - **Linguagem:** Python 3, **só biblioteca padrão** (`socket`, `threading`, `heapq`, `time`, `unittest`).
   Obrigatório na VDI. Código compatível com Python 3.8+.
@@ -271,18 +272,17 @@ Resolvidas em 2026-11-19: ambiente = VDI (D24); G = 6 conferido no Moodle (D25);
 regra de desempate (D05–D36); revisão geral do plano contra o enunciado (fim de `DECISIONS.md`).
 
 Ainda abertas:
-1. **Atualizar o grupo no Moodle (tirar o Leonardo) e avisar o professor** de que viramos trio
-   (enunciado: "Trios serão aceitos apenas para fechar a divisão da turma").
-2. Resultado do teste de fumaça da VDI (Python ≥ 3.8, VMs se alcançam por UDP).
-3. Ver se o Moodle pede para registrar o ambiente; registrar integrantes e data de apresentação.
+1. Teste de fumaça da VDI: parte A feita (Windows, Python 3.13, código roda); falta a parte B (VMs de
+   contas diferentes se alcançam por UDP?), com o Gustavo.
+2. Registrar a data de apresentação no Moodle (e o ambiente, se pedir). Integrantes já atualizados
+   (trio) e professor avisado em 2026-11-21.
 
 Riscos principais:
 | Risco | Impacto | Mitigação |
 |---|---|---|
 | Integrante não explicar código (regra de IA) | **Nota zero** | Código simples e comentado; dono por módulo; revisão cruzada; ensaio de perguntas |
 | Incompatibilidade com outro grupo | Perde critério 7 (10%) | Formatos literais; testes com exemplos do enunciado; teste real antecipado |
-| Grupo virou trio sem aviso ao professor | O professor pode reorganizar os grupos ou estranhar 3 roteadores | Atualizar o Moodle e avisar o professor já |
-| Carga maior com 2 pessoas programando | Atraso no relatório (20%) ou no forwarding (25%) | Ordem definida na §7: `packets.py`/`config.py` primeiro; forwarding em paralelo; relatório teórico pode começar já |
+| Carga maior com 2 pessoas programando | Atraso no relatório (20%) ou no forwarding (25%) | Ordem definida na §7: `packets.py`/`config.py` primeiro; forwarding em paralelo; relatório e roteiro depois do código pronto e testado nas VMs (escolha do William) |
 | Gustavo (que não escreve código neste trabalho) não saber explicar uma parte | Se ele não souber explicar o código questionado → **nota zero** para o trabalho | Incluí-lo nas revisões de PR e no ensaio de perguntas; ele estuda todos os módulos, não só a vizinhança |
 | VDI indisponível / VMs não se alcançam | Rede não sobe | Teste de fumaça na F0; plano B access point (mesmo código) |
 | IP da VM muda / várias interfaces | Rede não sobe na apresentação | Config fácil de editar; checklist pré-apresentação; bind em `0.0.0.0` |
