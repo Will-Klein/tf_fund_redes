@@ -7,7 +7,7 @@ com Dijkstra e encaminha DADOS/ICMP com TTL (`ping`, tempo excedido, destino ina
 Integrantes: William, Frederico e Gustavo. Endereços virtuais `10.6.R.1` (R1 William,
 R2 Frederico, R3 Gustavo).
 
-> **Estado:** em desenvolvimento (falta o `forwarding.py`). Andamento em `docs/PROGRESS.md`.
+> **Estado:** em desenvolvimento (código completo; faltam o teste nas VMs, a interoperabilidade e o relatório). Andamento em `docs/PROGRESS.md`.
 
 ## Requisitos
 

@@ -5,8 +5,8 @@
 > leva o trabalho a **nota zero**. Cada um precisa conhecer também as partes que não escreveu.
 >
 > Cada dono escreve a parte dele. Parte 1 (esta): `router.py`, `log.py` e `cli.py`, escritos pelo
-> William. Parte 2: `packets.py` e `config.py` (William) já escrita; `forwarding.py` (Frederico)
-> pendente. Parte 3 (`dijkstra.py`, Frederico) já escrita. Desde 2026-11-20 somos trio: William,
+> William. Parte 2: `packets.py` e `config.py` (William) e `forwarding.py` (Frederico), já escritas.
+> Parte 3 (`dijkstra.py`, Frederico) já escrita. Desde 2026-11-20 somos trio: William,
 > Frederico e Gustavo (o Leonardo saiu do grupo).
 >
 > Como estudar: leia uma seção, abra o arquivo ao lado e encontre a função citada. No fim há
@@ -401,9 +401,138 @@ python3 router.py configs/grupo/r1.conf                         # erro: IP_R2 ai
 - [ ] `network_of` e `same_network`, e onde o Router usa cada um;
 - [ ] as diretivas da configuração e cada erro possível.
 
-### 2F. `forwarding.py` (Frederico)
+### Parte 2F — `forwarding.py` (Frederico)
 
-*A escrever pelo Frederico quando o módulo estiver pronto.*
+#### 1. O que o módulo faz
+
+É o **plano de dados**: tudo o que acontece com um pacote DADOS ou ICMP, em três situações:
+
+1. **Originar** (comandos `msg` e `ping`): consulta a tabela e envia, ou avisa que não há rota.
+2. **Receber com destino na própria rede** (`10.6.R.0/24`): entrega ao roteador (mostra a mensagem,
+   responde ao eco, ou mostra o resultado do ping).
+3. **Receber com destino em outra rede** (trânsito): decrementa o TTL e encaminha, ou descarta e
+   avisa a origem com ICMP.
+
+Quem chama: `cli.py` chama `send_data` e `ping`; a thread de recepção do Router chama `handle`
+(dentro do lock) para todo DADOS/ICMP que chega de um vizinho configurado.
+
+O módulo **não** guarda tabela nem vizinhos: pergunta ao Router (`route_for`, `is_local`, `send`).
+
+#### 2. Estado e funções
+
+| Nome | Para que serve |
+|---|---|
+| `next_id` | contador do id do ping, a partir de 1 (D19); DADOS usam id 0 |
+| `pending` | pings esperando resposta: `{id: {"evento", "inicio", "resposta"}}` |
+| `send_data(dst, text)` | comando `msg`: cria o DADOS, chama `emitir`, devolve o texto para a CLI |
+| `ping(dst, ttl)` | comando `ping`: registra o pedido, envia, espera até 2 s, devolve o texto |
+| `handle(pkt, peer)` | ponto de entrada de um pacote da rede: decide entre `entregar` e `em_transito` |
+| `entregar(pkt)` | destino na própria rede: DADOS, eco (8) ou resultado (0, 11, 3) |
+| `resultado_icmp(pkt)` | acorda o ping pendente com esse id, ou mostra a resposta se não há |
+| `em_transito(pkt)` | TTL, depois rota, depois encaminha |
+| `gerar_erro(causa, tipo)` | cria ICMP 11 ou 3 para a origem, exceto se a causa já é um erro |
+| `emitir(pkt)` | coloca na rede um pacote criado **aqui** (comandos, eco 0, erros 11/3) |
+
+`emitir` devolve o próximo salto se enviou, `PROPRIA_REDE` se o destino é a própria /24 (entrega
+direta, D09), ou `None` se não há rota. É a única função que decide "por onde sai um pacote que eu
+criei", então `msg`, `ping`, resposta de eco e erros usam a mesma lógica (e a mesma regra de "sem
+rota → não envia").
+
+#### 3. O `ping`, passo a passo
+
+1. Sob o lock: pega o próximo id, cria um `threading.Event`, guarda o instante (`perf_counter`) e
+   registra tudo em `pending[id]`; cria o `Icmp` tipo 8 com o TTL pedido e chama `emitir`.
+   Se não há rota, remove o pendente e devolve "Destino inalcancavel: sem rota ...".
+2. **Fora do lock**: `evento.wait(2.0)`. Se esperasse dentro do lock, a thread de recepção não
+   entraria para entregar a resposta, e todo ping daria timeout.
+3. A thread de recepção recebe a resposta, `handle` → `entregar` → `resultado_icmp`: acha
+   `pending[id]`, calcula o RTT, guarda `(pacote, rtt)` e chama `evento.set()`.
+4. O `ping` acorda, lê `pedido["resposta"]` sob o lock e monta o texto
+   (`Resposta de eco de ...`, `Tempo excedido informado por ...` ou `Destino inalcancavel informado por ...`),
+   ou "Timeout: nenhuma resposta em 2 s" se nada chegou.
+
+**Por que `perf_counter` (D45)?** É o relógio feito para medir intervalos: tem alta resolução em
+qualquer sistema e nunca pula se a hora da máquina for acertada (o `time.time()` pode pular, e em
+Pythons antigos no Windows só mudava a cada ~15 ms).
+
+#### 4. Em trânsito (`em_transito`): a ordem importa
+
+1. `novo_ttl = pkt.ttl - 1`; se `novo_ttl <= 0` → descarta e gera **ICMP 11**.
+2. Senão, `route_for(destino)`; se `None` → descarta e gera **ICMP 3**.
+3. Senão, envia `pkt._replace(ttl=novo_ttl)` ao (IP, porta) do próximo salto e registra em `[ENCAMINHA]`.
+
+O TTL vem **antes** da rota, como no enunciado: um pacote com TTL 1 e sem rota gera o 11, não o 3.
+`<= 0` (e não `== 0`) cobre um pacote que chegue de outra implementação já com TTL 0 (D14).
+`_replace` é um método dos `namedtuple`: devolve uma cópia do pacote com só o TTL trocado.
+
+#### 5. Erros e a regra "nunca erro sobre erro"
+
+`gerar_erro` monta `Icmp(origem = este roteador, destino = origem do pacote, TTL 16, id copiado, tipo)`.
+Se o pacote que causou o descarte é um ICMP 11 ou 3, **não gera nada** (só loga). Eco (0 e 8) **não**
+é erro, então gera erro normalmente (D10). Se não há rota de volta até a origem, o erro não é
+enviado, só logado (D11).
+
+#### 6. Entrega local e a resposta de eco
+
+Ao receber um ICMP 8 para qualquer endereço da própria /24 (`10.6.2.1` ou `10.6.2.77`), o roteador
+responde com tipo 0, **mesmo id**, TTL 16, e **origem = o endereço que foi pingado** (`pkt.dst`) e
+não necessariamente o `.1` dele. É o que o integration test confere no `ping 10.6.5.77`.
+
+Se alguém pinga a **própria rede**, `emitir` passa o pacote direto a `handle` (D09), sem ir à rede:
+o eco volta na hora, com RTT ≈ 0.
+
+#### 7. Onde cada coisa aparece no log
+
+| Categoria | Evento |
+|---|---|
+| `ENCAMINHA` | pacote em trânsito encaminhado (próximo salto e TTL novo); DADOS enviado por este roteador |
+| `ICMP` | **toda** mensagem ICMP gerada aqui: 8 (ping), 0 (resposta), 11, 3; e timeout do ping |
+| `ENTREGA` | pedido de eco entregue, resposta de ping entregue, mensagem/resultado exibido (só no arquivo, D46) |
+| `DESCARTE` | TTL chegou a 0, sem rota, erro não gerado (já era erro), sem rota de volta |
+
+#### 8. Perguntas prováveis do professor (com resposta)
+
+1. **Por que o `ping` espera fora do lock?** Quem entrega a resposta é a thread de recepção, e ela
+   precisa do lock. Esperando dentro do lock, ela ficaria bloqueada e o ping sempre daria timeout.
+2. **Como o ping sabe qual resposta é dele?** Pelo id: cada pedido tem um id do contador, e as
+   respostas (0, 11 e 3) copiam o id. O `pending` associa id → pedido.
+3. **Como funciona o `ping` com TTL 1, 2, 3...?** O TTL cai 1 em cada roteador de trânsito; onde chega a
+   0, esse roteador devolve ICMP 11 com a própria origem. Assim cada ping revela um salto do caminho.
+4. **Por que a resposta de eco usa como origem o endereço pingado?** Porque o enunciado manda: a origem
+   da resposta é o endereço de destino do pedido (quem foi "pingado"), e o roteador representa toda a /24.
+5. **Qual a diferença entre o ICMP 11 e o 3?** 11: o TTL chegou a 0. 3: não há rota para o destino.
+6. **Por que não se gera erro em resposta a erro?** Para não criar uma cascata (um erro que gera um erro
+   que gera outro...). É regra do enunciado.
+7. **Por que decrementar o TTL antes de consultar a rota?** É a ordem do enunciado; com TTL 1 e sem rota,
+   o pacote já morreu e a resposta correta é o 11.
+8. **O que acontece se não há rota ao pingar?** Nada é enviado; o usuário vê "Destino inalcancavel: sem
+   rota para ... (nada foi enviado)".
+9. **O que acontece ao pingar um endereço da própria rede?** O pacote é entregue direto ao próprio roteador
+   (D09): responde o eco sem sair do roteador.
+10. **O roteador de trânsito altera o pacote?** Só o TTL (`_replace`); origem, destino, id e mensagem seguem.
+11. **De onde vem o próximo salto?** Do `route_for` do Router, que olha a tabela (Dijkstra) e devolve o
+    (IP real, porta) do vizinho ativo com aquele endereço virtual.
+12. **Por que o RTT usa `perf_counter`?** É o relógio para medir intervalos: alta resolução e não pula com acerto da hora da máquina (D45).
+
+#### 9. Para conferir na prática
+
+```bash
+python3 -m unittest tests.test_forwarding -v
+python3 tests/integration_local.py
+```
+No terminal de R1 da `local5`: `ping 10.6.5.1 1`, `ping 10.6.5.1 2`, `ping 10.6.5.1 3` e veja cada salto;
+`ping 10.99.99.1` (sem rota); `msg 10.6.5.1 ola`, e confira `[ENCAMINHA]` e `[ICMP]` em `logs/10.6.2.1.log`.
+
+#### 10. Consigo explicar...?
+
+- [ ] as três situações (originar, entrega local, trânsito) e quem chama cada função;
+- [ ] por que `emitir` existe e o que ele devolve;
+- [ ] o `ping` passo a passo, inclusive o `Event` e o porquê da espera fora do lock;
+- [ ] a ordem TTL → rota em trânsito e por que `<= 0`;
+- [ ] como e quando se gera ICMP 11 e 3, e a regra "nunca erro sobre erro";
+- [ ] a resposta de eco (origem = endereço pingado) e o ping à própria rede;
+- [ ] o que aparece em cada categoria do log;
+- [ ] as perguntas da seção 8 sem olhar a resposta.
 
 ## Parte 3 — `dijkstra.py` (Frederico)
 
