@@ -5,8 +5,8 @@
 > leva o trabalho a **nota zero**. Cada um precisa conhecer também as partes que não escreveu.
 >
 > Cada dono escreve a parte dele. Parte 1 (esta): `router.py`, `log.py` e `cli.py`, escritos pelo
-> William. Parte 2: `packets.py` e `config.py` (William) já escrita; `forwarding.py` (Frederico)
-> pendente. Parte 3 (`dijkstra.py`, Frederico) já escrita. Desde 2026-11-20 somos trio: William,
+> William. Parte 2: `packets.py` e `config.py` (William) e `forwarding.py` (Frederico), já escritas.
+> Parte 3 (`dijkstra.py`, Frederico) já escrita. Desde 2026-11-20 somos trio: William,
 > Frederico e Gustavo (o Leonardo saiu do grupo).
 >
 > Como estudar: leia uma seção, abra o arquivo ao lado e encontre a função citada. No fim há
@@ -451,7 +451,9 @@ rota → não envia").
    (`Resposta de eco de ...`, `Tempo excedido informado por ...` ou `Destino inalcancavel informado por ...`),
    ou "Timeout: nenhuma resposta em 2 s" se nada chegou.
 
-**Por que `perf_counter` (D45)?** A VM é Windows, onde `time.time()` pode ter resolução de ~15 ms.
+**Por que `perf_counter` (D45)?** É o relógio feito para medir intervalos: tem alta resolução em
+qualquer sistema e nunca pula se a hora da máquina for acertada (o `time.time()` pode pular, e em
+Pythons antigos no Windows só mudava a cada ~15 ms).
 
 #### 4. Em trânsito (`em_transito`): a ordem importa
 
@@ -510,7 +512,7 @@ o eco volta na hora, com RTT ≈ 0.
 10. **O roteador de trânsito altera o pacote?** Só o TTL (`_replace`); origem, destino, id e mensagem seguem.
 11. **De onde vem o próximo salto?** Do `route_for` do Router, que olha a tabela (Dijkstra) e devolve o
     (IP real, porta) do vizinho ativo com aquele endereço virtual.
-12. **Por que o RTT usa `perf_counter`?** Resolução melhor no Windows e não pula com acerto do relógio (D45).
+12. **Por que o RTT usa `perf_counter`?** É o relógio para medir intervalos: alta resolução e não pula com acerto da hora da máquina (D45).
 
 #### 9. Para conferir na prática
 
