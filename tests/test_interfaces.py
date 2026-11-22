@@ -112,8 +112,10 @@ class TestConfigsDasTopologias(unittest.TestCase):
         self.verificar_simetria("grupo", lambda ip, porta: "10.6.%s.1" % ip.replace("IP_R", ""))
 
     def test_teste_vdi(self):
-        # teste rápido da VDI: só R1 e R3, mesmos marcadores IP_Rn da rede do grupo
-        self.verificar_simetria("teste_vdi", lambda ip, porta: "10.6.%s.1" % ip.replace("IP_R", ""))
+        # triângulo em 2 VMs: na VM do William (IP_R1) o R1 usa a porta 6000 e o R2 a 6002;
+        # na VM do Gustavo (IP_R3) fica o R3, na porta 6000
+        quem = {("IP_R1", 6000): "10.6.1.1", ("IP_R1", 6002): "10.6.2.1", ("IP_R3", 6000): "10.6.3.1"}
+        self.verificar_simetria("teste_vdi", lambda ip, porta: quem[(ip, porta)])
 
 
 if __name__ == "__main__":
