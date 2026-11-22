@@ -24,6 +24,7 @@ Regra: só marcar ✅ com teste executado (registrar o comando/resultado na colu
 | 2026-11-21 | Ambiente VDI confirmado por William. Preparado o teste rápido da VDI: `docs/TESTE_VDI.md` + `configs/teste_vdi/` (R1–R3, custo 5) + teste de simetria dessas configs. Repositório é privado: Gustavo precisa de acesso (colaborador) ou do `.zip` | William: parte A hoje; parte B com o Gustavo amanhã |
 | 2026-11-21 | Branch `forwarding`: `forwarding.py` implementado (originar DADOS/ICMP, entrega local, trânsito com TTL, erros 11/3 sem erro sobre erro, ping com id, RTT e timeout de 2 s, textos do D40) + `tests/test_forwarding.py` (26 testes, Router falso). D45 e D46. Parte 2 (forwarding) do `docs/GUIA_ESTUDO.md` escrita | PR do `forwarding.py`; William revisa; rodar a integração (esperado 41 OK, 0 PULADO) e testar nas VMs |
 | 2026-11-22 | PR do `forwarding.py` revisado por William: código conferido regra a regra contra o enunciado, 134 testes, integração 41/41 em 3 execuções, roteiro da apresentação ensaiado no triângulo. Ajustes de docs (evidência acima, D45, guia). Observado: logo após reiniciar o roteador derrubado, um `ping` pode dar timeout por até 5 s (o reiniciado só tem rota de volta depois do HELLO do vizinho; ele loga `sem rota de volta` — D11). **Na apresentação: depois de reiniciar, esperar o `vizinhos` dele mostrar os vizinhos antes de repetir o `ping`** | Merge do PR; parte B do teste da VDI com o Gustavo; rede do grupo nas 3 VMs |
+| 2026-11-22 | PR #9 (forwarding) mergeado: código completo. Teste da VDI ampliado: `configs/teste_vdi/` agora monta o triângulo da apresentação em 2 VMs (R1 e R2 na VM do William, portas 6000 e 6002; R3 na do Gustavo) e `docs/TESTE_VDI.md` cobre o roteiro inteiro (B4–B11). Conferido: R1 e R2 na mesma máquina se falando pelo IP real (vizinhos ativos, ping ok) | Parte B com o Gustavo; depois, ensaio com as 3 VMs |
 
 ## Tarefas
 
@@ -50,7 +51,7 @@ Regra: só marcar ✅ com teste executado (registrar o comando/resultado na colu
 | F5 | Ensaio da apresentação + simulação de perguntas | Todos (incl. Gustavo) | ⬜ | |
 | contínuo | Guia de estudo: parte 1 (router, log, cli) | William | ✅ | `docs/GUIA_ESTUDO.md`; nomes de funções, constantes e limites conferidos por busca no código; exemplo bate com `tests/test_router.py` |
 | contínuo | Guia de estudo: parte 2 (packets e config) | William | ✅ | `docs/GUIA_ESTUDO.md`, Parte 2A–2E; nomes de funções, mensagens de erro e o exemplo do `IP_R2` conferidos rodando o código |
-| contínuo | Guia de estudo: parte 2 (forwarding) | Frederico | ⬜ | |
-| contínuo | Pendências da revisão do Dijkstra: teste de empate; "custos não negativos" no guia | Frederico | ⬜ | |
+| contínuo | Guia de estudo: parte 2 (forwarding) | Frederico | ✅ | `docs/GUIA_ESTUDO.md`, Parte 2F (PR #9); conferida na revisão do PR (William, 2026-11-22) |
+| contínuo | Pendências da revisão do Dijkstra: teste de empate; "custos não negativos" no guia | Frederico | 🟨 | Nota dos custos positivos já está no guia (Parte 3, "Custos positivos"). Falta o teste de empate em `tests/test_dijkstra.py` |
 | contínuo | Guia de estudo: parte 3 (dijkstra) | Frederico | ✅ | `docs/GUIA_ESTUDO.md`, Parte 3; nomes de variáveis e o exemplo conferidos contra `dijkstra.py` e contra a `local5` do plano §5 |
 | F5 | Auditoria final e `.zip` | William | ⬜ | |
