@@ -401,6 +401,46 @@ class TestRobustez(unittest.TestCase):
         self.assertFalse(any(c == "ERRO" for c, _ in logger.linhas))
 
 
+class TestToleranciaAPerdas(unittest.TestCase):
+    """Quantas mensagens seguidas podem se perder antes de um temporizador expirar (relatório, Q3 e Q5)."""
+
+    def test_dois_hellos_perdidos_nao_derrubam_o_vizinho(self):
+        r, _, relogio, _ = criar_r1()
+        hello(r, R2, "10.6.2.1")          # t = 0
+        relogio.t += 15                   # os HELLOs de 5 e 10 s se perderam; o de 15 s chega
+        r.tick()
+        self.assertTrue(r.neighbors[R2].active)
+        hello(r, R2, "10.6.2.1")
+        relogio.t += 19.5
+        r.tick()
+        self.assertTrue(r.neighbors[R2].active)
+
+    def test_tres_hellos_perdidos_atingem_o_limite_de_20s(self):
+        r, _, relogio, _ = criar_r1()
+        hello(r, R2, "10.6.2.1")          # t = 0
+        relogio.t += 20                   # perdeu 5, 10 e 15 s; o de 20 s chega junto com o limite
+        r.tick()                          # se a verificação vier antes do HELLO, o vizinho cai
+        self.assertFalse(r.neighbors[R2].active)
+
+    def test_uma_renovacao_perdida_nao_remove_o_lsp(self):
+        r, _, relogio, _ = criar_r1()
+        lsp(r, R2, "10.6.4.1", 10, {"10.6.2.1": 2})     # t = 0
+        relogio.t += 60                                 # a renovação de 30 s se perdeu; a de 60 s chega
+        r.tick()
+        self.assertIn("10.6.4.1", r.lsdb)
+        lsp(r, R2, "10.6.4.1", 12, {"10.6.2.1": 2})
+        relogio.t += 89.5
+        r.tick()
+        self.assertIn("10.6.4.1", r.lsdb)
+
+    def test_duas_renovacoes_perdidas_atingem_o_limite_de_90s(self):
+        r, _, relogio, _ = criar_r1()
+        lsp(r, R2, "10.6.4.1", 10, {"10.6.2.1": 2})     # t = 0
+        relogio.t += 90                                 # perdeu 30 e 60 s; a de 90 s chega junto com o limite
+        r.tick()                                        # se a verificação vier antes, o LSP é removido
+        self.assertNotIn("10.6.4.1", r.lsdb)
+
+
 class TestConstantes(unittest.TestCase):
     def test_tick_menor_que_os_temporizadores(self):
         self.assertLess(router.TICK, router.HELLO_INTERVAL)

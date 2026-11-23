@@ -1,0 +1,24 @@
+{
+  "seq_antigo_na_lsdb_do_r1": 1795410312,
+  "lsp_antigo_ainda_na_lsdb_ao_reiniciar": true,
+  "seq_apos_reinicio_real": 1795410325,
+  "reinicio_real_aceito": true,
+  "log_do_r1_sobre_o_reinicio": [
+    "2026-11-23 02:05:25.958 [LSP] LSP novo: 10.6.2.1 seq 1795410325 [10.6.1.1=1], de 10.6.2.1 (127.0.0.1:6002)"
+  ],
+  "seq_guardado_antes_dos_lsps_baixos": 1795410327,
+  "seq_na_lsdb_depois_dos_lsps_baixos": 1795410327,
+  "lsps_baixos_descartados": true,
+  "log_do_r1_sobre_os_seq_baixos": [
+    "2026-11-23 02:05:48.288 [LSP] LSP descartado (copia/antigo): 10.6.2.1 seq 0 (LSDB tem seq 1795410327), de 10.6.2.1 (127.0.0.1:6002)",
+    "2026-11-23 02:05:48.598 [LSP] LSP descartado (copia/antigo): 10.6.2.1 seq 1 (LSDB tem seq 1795410327), de 10.6.2.1 (127.0.0.1:6002)",
+    "2026-11-23 02:05:48.908 [LSP] LSP descartado (copia/antigo): 10.6.2.1 seq 2 (LSDB tem seq 1795410327), de 10.6.2.1 (127.0.0.1:6002)"
+  ],
+  "log_do_r1_apos_90s": [
+    "2026-11-23 02:06:56.460 [LSP] LSP de 10.6.2.1 envelhecido (90 s sem renovacao): removido da LSDB",
+    "2026-11-23 02:06:56.460 [TABELA] tabela recalculada (LSP de 10.6.2.1 envelhecido): sem mudanca",
+    "2026-11-23 02:06:57.730 [LSP] LSP novo: 10.6.2.1 seq 3 [10.6.1.1=1, 10.6.3.1=2], de 10.6.2.1 (127.0.0.1:6002)"
+  ],
+  "seq_baixo_aceito_apos_envelhecer": true,
+  "captura": "capturas/q4_sequencia.pcapng"
+}

@@ -1,0 +1,99 @@
+{
+  "queda": "R2 (caminho R1-R2-R3)",
+  "medidas": [
+    {
+      "rodada": 1,
+      "tabelas_finais_corretas": true,
+      "queda_apos_ultimo_hello_s": 4.878,
+      "deteccao_s": 15.282,
+      "primeira_deteccao_apos_ultimo_hello_s": 20.16,
+      "diferenca_entre_detectores_ms": 5.0,
+      "inundacao_e_recalculo_ms": 6.0,
+      "maior_inundacao_de_um_lsp_ms": 0.512,
+      "rota_r1_r3_apos_queda_s": 15.287,
+      "total_s": 15.288
+    },
+    {
+      "rodada": 2,
+      "tabelas_finais_corretas": true,
+      "queda_apos_ultimo_hello_s": 0.938,
+      "deteccao_s": 19.209,
+      "primeira_deteccao_apos_ultimo_hello_s": 20.147,
+      "diferenca_entre_detectores_ms": 14.0,
+      "inundacao_e_recalculo_ms": 15.0,
+      "maior_inundacao_de_um_lsp_ms": 0.897,
+      "rota_r1_r3_apos_queda_s": 19.209,
+      "total_s": 19.224
+    },
+    {
+      "rodada": 3,
+      "tabelas_finais_corretas": true,
+      "queda_apos_ultimo_hello_s": 2.037,
+      "deteccao_s": 18.128,
+      "primeira_deteccao_apos_ultimo_hello_s": 20.165,
+      "diferenca_entre_detectores_ms": 21.0,
+      "inundacao_e_recalculo_ms": 22.0,
+      "maior_inundacao_de_um_lsp_ms": 0.401,
+      "rota_r1_r3_apos_queda_s": 18.142,
+      "total_s": 18.15
+    },
+    {
+      "rodada": 4,
+      "tabelas_finais_corretas": true,
+      "queda_apos_ultimo_hello_s": 3.134,
+      "deteccao_s": 17.024,
+      "primeira_deteccao_apos_ultimo_hello_s": 20.158,
+      "diferenca_entre_detectores_ms": 29.0,
+      "inundacao_e_recalculo_ms": 29.0,
+      "maior_inundacao_de_um_lsp_ms": 0.658,
+      "rota_r1_r3_apos_queda_s": 17.053,
+      "total_s": 17.053
+    },
+    {
+      "rodada": 5,
+      "tabelas_finais_corretas": true,
+      "queda_apos_ultimo_hello_s": 4.202,
+      "deteccao_s": 16.115,
+      "primeira_deteccao_apos_ultimo_hello_s": 20.317,
+      "diferenca_entre_detectores_ms": 32.0,
+      "inundacao_e_recalculo_ms": 33.0,
+      "maior_inundacao_de_um_lsp_ms": 0.589,
+      "rota_r1_r3_apos_queda_s": 16.147,
+      "total_s": 16.148
+    }
+  ],
+  "resumo": {
+    "deteccao_s": {
+      "min": 15.282,
+      "media": 17.152,
+      "max": 19.209
+    },
+    "primeira_deteccao_apos_ultimo_hello_s": {
+      "min": 20.147,
+      "media": 20.189,
+      "max": 20.317
+    },
+    "diferenca_entre_detectores_ms": {
+      "min": 5.0,
+      "media": 20.2,
+      "max": 32.0
+    },
+    "inundacao_e_recalculo_ms": {
+      "min": 6.0,
+      "media": 21.0,
+      "max": 33.0
+    },
+    "maior_inundacao_de_um_lsp_ms": {
+      "min": 0.401,
+      "media": 0.611,
+      "max": 0.897
+    },
+    "total_s": {
+      "min": 15.288,
+      "media": 17.173,
+      "max": 19.224
+    }
+  },
+  "um_dijkstra_na_local5_us": 2.1,
+  "captura": "capturas/q3_convergencia_5.pcapng"
+}

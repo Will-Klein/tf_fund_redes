@@ -208,6 +208,8 @@ ainda. Lista viva em `PROGRESS.md`.
 
 ## 7. Divisão de tarefas
 
+**Atualização de 2026-11-23:** Frederico ficou indisponível até a apresentação por causa de uma prova. O que restava dele (teste de empate do Dijkstra e revisão da Q1) foi feito por William. Ele continua no grupo: precisa estar presente na apresentação e operar o R2 na própria VM.
+
 **Redivisão de 2026-11-20:** o Leonardo saiu do grupo, que virou **trio** (William, Frederico,
 Gustavo). Pedido de William: o relatório passa do Frederico para ele, e a parte do Leonardo é
 repartida entre os dois que programam, com William ficando com mais (como já combinado, por ele
@@ -248,7 +250,7 @@ fase (ver `IMPLEMENTATION_PLAN.md §6`).
 | F2 | LSP/LSDB/inundação/sync/aging ✅; `forwarding.py` + ping; `cli.py` ✅ | William; Frederico (desde 2026-11-20); William |
 | F3 | Integração local com 5 roteadores; teste de integração; correções | Todos (William coordena) |
 | F4 | Rede do grupo nas 3 VMs; interoperabilidade com outro grupo da VDI; capturas | Todos |
-| F5 | Relatório, README, `.zip`; roteiro e ensaio da apresentação; auditoria final | William (relatório, apresentação, auditoria); Frederico revisa a Q1; ensaio com todos |
+| F5 | Relatório, README, `.zip`; roteiro e ensaio da apresentação; auditoria final | William (relatório, apresentação, auditoria); ensaio com todos |
 
 ---
 

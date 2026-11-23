@@ -51,6 +51,14 @@ class TestConfig(unittest.TestCase):
                                                         NeighborConf("192.168.0.13", 6000, 5)]))
         self.assertEqual(saida, "")   # endereço no padrão: nenhum aviso
 
+    def test_arquivo_salvo_pelo_bloco_de_notas(self):
+        # Windows (VDI): marca BOM no início e fim de linha CRLF
+        caminho = os.path.join(self.pasta.name, "bom.conf")
+        with open(caminho, "w", encoding="utf-8-sig", newline="\r\n") as arquivo:
+            arquivo.write("# Roteador 1\nendereco 10.6.1.1\nporta 6000\nvizinho 10.20.30.40 6000 5\n")
+        self.assertEqual(load_config(caminho),
+                         Config("10.6.1.1", 6000, [NeighborConf("10.20.30.40", 6000, 5)]))
+
     def test_porta_padrao_6000(self):
         cfg, _ = self.carregar("endereco 10.6.1.1\nvizinho 127.0.0.1 6002 1\n")
         self.assertEqual(cfg.port, DEFAULT_PORT)

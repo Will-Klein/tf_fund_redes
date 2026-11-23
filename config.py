@@ -48,7 +48,8 @@ def segue_padrao_do_trabalho(endereco):
 def load_config(path):
     """Lê o arquivo em 'path' e devolve um Config. Levanta ConfigError se houver erro."""
     try:
-        with open(path, encoding="utf-8") as arquivo:
+        # utf-8-sig: aceita também a marca BOM que o Bloco de Notas do Windows (VDI) pode gravar (D48)
+        with open(path, encoding="utf-8-sig") as arquivo:
             linhas = arquivo.readlines()
     except (OSError, UnicodeDecodeError) as erro:
         raise ConfigError("nao foi possivel ler %s: %s" % (path, erro))
