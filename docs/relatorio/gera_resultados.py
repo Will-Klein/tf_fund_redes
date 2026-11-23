@@ -47,8 +47,8 @@ def q2():
                    t["enviados_ao_R4_morto"], ""])
     dv = [["%s, infinito = %d" % ("poison reverse" if d["poison_reverse"] else "sem proteção", d["infinito"]),
            d["rodadas"], d["mensagens"]] for d in r["vetor_distancia"]]
-    rodadas = [[x["rodada"], x["transmissoes"], x["aceitos_como_novos"], x["descartados_copia"],
-                x["enviados_ao_R4_morto"], x["captura"]] for x in r["rodadas"]]
+    rodadas = [[x["rodada"], x["queda_apos_a_partida_s"], x["transmissoes"], x["aceitos_como_novos"], x["descartados_copia"],
+                x["enviados_ao_R4_morto"], x["lsps_extras_na_janela"], x["captura"]] for x in r["rodadas"]]
     return ("## Q2. Inundação (queda do R4)\n\nCaptura: `%s`\n\n"
             "A queda gerou %d LSPs novos (R2 e R5, os vizinhos do R4), %.3f s depois da queda.\n\n%s\n"
             "Repetições da mesma queda:\n\n%s\n"
@@ -57,7 +57,7 @@ def q2():
             % (r["captura"], r["lsps_gerados_pela_mudanca"], r["segundos_entre_queda_e_primeiro_lsp"],
                tabela(["LSP de", "seq", "Transmissões", "Aceitos", "Cópias descartadas", "Ao R4 morto", "Caminho"],
                       linhas),
-               tabela(["Rodada", "Transmissões", "Aceitas", "Cópias", "Ao R4 morto", "Captura"], rodadas),
+               tabela(["Rodada", "Queda após a partida (s)", "Transmissões", "Aceitas", "Cópias", "Ao R4 morto", "Outros LSPs na janela", "Captura"], rodadas),
                tabela(["Variante", "Rodadas", "Mensagens"], dv)))
 
 

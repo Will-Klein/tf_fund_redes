@@ -22,8 +22,9 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, AQUI)
 
 from experimentos import TSHARK  # noqa: E402
-from tira_prints import casos as filtros_dos_prints  # noqa: E402
+from tira_prints import assinatura, casos as filtros_dos_prints  # noqa: E402
 
+SAIDA = os.path.join(AQUI, "relatorio.pdf")
 DISCIPLINA = "Fundamentos de Redes de Computadores"
 INTEGRANTES = ["William de Oliveira Klein", "Gustavo de Freitas Fidélis", "Frederico Abreu Miguens Nizoli"]
 
@@ -108,9 +109,22 @@ def quadros(captura, filtro):
     return resultado
 
 
+def conferir_print(chave):
+    """Impede um PDF com print de uma captura antiga: compara com o registro de tira_prints.py."""
+    captura, filtro = filtros_dos_prints()[chave]
+    try:
+        with open(os.path.join(AQUI, "figuras", "prints.json"), encoding="utf-8") as arquivo:
+            registro = json.load(arquivo)[chave]
+    except (OSError, KeyError):
+        sys.exit("Falta o print %s: rode python3 docs/relatorio/tira_prints.py" % chave)
+    if (registro["sha256"], registro["filtro"]) != (assinatura(captura), filtro):
+        sys.exit("O print %s nao corresponde a captura atual: rode python3 docs/relatorio/tira_prints.py" % chave)
+
+
 def print_wireshark(chave, numero, legenda):
     """Print real da janela do Wireshark, cortando só a área vazia abaixo da lista de pacotes."""
     from PIL import Image
+    conferir_print(chave)
     imagem = Image.open(os.path.join(AQUI, "figuras", "wireshark_%s.png" % chave)).convert("RGB")
     fim = max(y for y in range(200, imagem.height - 60) if imagem.getpixel((1900, y))[0] > 190)
     memoria = io.BytesIO()
@@ -165,7 +179,8 @@ esperada é única. Há caminhos alternativos: de R1 a R3, por exemplo, o melhor
 virtual <code>10.6.R.1</code> e responde pela rede <code>10.6.R.0/24</code>.</p>
 <figure><img src="data:image/png;base64,{base64.b64encode(figura).decode()}" alt="Topologia com 5 roteadores">
 <figcaption>Figura 1. Topologia de teste, com os custos dos enlaces, os endereços virtuais e as portas UDP.</figcaption></figure>
-<p>Os experimentos foram feitos em uma única máquina, como o enunciado permite: 5 processos do roteador (Python 3.9) em
+<p>Os experimentos foram feitos em uma única máquina com macOS, como o enunciado permite; o ambiente da apresentação é outro (VMs
+Windows da VDI, com um roteador por integrante). Foram 5 processos do roteador (Python 3.9) em
 <code>127.0.0.1</code>, nas portas 6001 a 6005, com os temporizadores da especificação (HELLO a cada 5 s, vizinho
 inativo após 20 s, renovação do LSP a cada 30 s e envelhecimento em 90 s). O tráfego foi capturado na interface
 de loopback com o Wireshark 4.6.7. As contagens e os tempos foram extraídos das capturas e dos logs dos roteadores. As Figuras 2 a 6 são prints reais da janela do
@@ -243,7 +258,10 @@ def q2():
     linhas = []
     conteudo = []
     copias_log = []
-    for nome, d in r["por_lsp"].items():
+    # Na ordem em que os LSPs apareceram na captura (quem detectou a queda primeiro vem antes)
+    ordem = sorted(r["por_lsp"].items(), key=lambda item: quadros(r["captura"], 'udp contains "LSP:10.6.%s.1:%d"'
+                                                                  % (item[0][1], item[1]["seq"]))[0][0])
+    for nome, d in ordem:
         origem = "10.6.%s.1" % nome[1]
         aceitos = aceitos_no_log("q2_inundacao", origem, d["seq"])
         pacotes = quadros(r["captura"], 'udp contains "LSP:%s:%d"' % (origem, d["seq"]))
@@ -278,17 +296,19 @@ def q2():
                          "temporizador expirar, quando R4 ainda constava como ativo." % (trecho.split("->")[0], nome))
 
     rodadas = r["rodadas"]
-    assert all(x["aceitos_como_novos"] == 6 and x["descartados_copia"] == 4 for x in rodadas)
+    assert all(x["aceitos_como_novos"] == 6 and x["descartados_copia"] == 4 and x["descartados_antigos"] == 0
+               and x["lsps_extras_na_janela"] == 0 for x in rodadas)
     assert all(x["transmissoes"] == 10 + x["enviados_ao_R4_morto"] for x in rodadas)
     totais = sorted({x["transmissoes"] for x in rodadas})
     faixa = str(totais[0]) if len(totais) == 1 else "%d a %d" % (totais[0], totais[-1])
-    linhas_rodadas = [[x["rodada"], x["transmissoes"], x["aceitos_como_novos"], x["descartados_copia"],
-                       x["enviados_ao_R4_morto"]] for x in rodadas]
+    linhas_rodadas = [[x["rodada"], n(x["queda_apos_a_partida_s"], 2), x["transmissoes"], x["aceitos_como_novos"],
+                       x["descartados_copia"], x["enviados_ao_R4_morto"], x["lsps_extras_na_janela"]] for x in rodadas]
     if len(totais) == 1:
         variacao = "O total foi %d nas %d rodadas." % (totais[0], len(rodadas))
     else:
-        variacao = ("O total variou de %d a %d: 10 é o valor da fórmula, e a transmissão a mais aparece quando um vizinho de R4 "
-                    "recebe o LSP do outro antes de detectar a queda." % (totais[0], totais[-1]))
+        variacao = "O total variou de %d a %d." % (totais[0], totais[-1])
+    variacao += (" Pela fórmula, o total é 10; a 11ª transmissão só ocorre quando um vizinho de R4 recebe o LSP do outro "
+                 "antes de detectar a queda.")
     dv = r["vetor_distancia"]
     nome_dv = lambda d: "Vetor de distância, %s, infinito = %d" % ("<i>poison reverse</i>" if d["poison_reverse"] else "sem proteção",
                                                                    d["infinito"])
@@ -297,8 +317,9 @@ def q2():
 <p>Com a rede convergida, derrubamos o roteador <b>R4</b>. Escolhemos R4 porque, sem ele, ainda resta o ciclo
 R1-R2-R3; numa rede sem ciclos não apareceriam cópias. A mudança gerou <b>{r["lsps_gerados_pela_mudanca"]} LSPs</b>,
 um de cada vizinho de R4 (R2 e R5), {n(r["segundos_entre_queda_e_primeiro_lsp"])} s depois da queda, quando o temporizador
-de 20 s expirou. Para contar só o efeito da queda, consideramos apenas esses dois LSPs (origem e número de sequência);
-as renovações periódicas ficaram de fora. O conteúdo dos dois LSPs, lido na captura, já não lista R4:</p>
+de 20 s expirou. Para medir só o efeito dessa mudança, cada queda ocorreu entre 31 e 36 s após a partida dos roteadores: assim, a
+detecção não coincide com as renovações periódicas de 30 s e 60 s, e a janela da queda não contém nenhum outro LSP (Tabela 4). O
+conteúdo dos dois LSPs, lido na captura, já não lista R4:</p>
 {pre(conteudo)}
 {tab(["LSP de", "Quadro", "Transmissão", "O que aconteceu"], linhas, numericas=(1,),
      classe_linha=lambda k: "total" if k == len(linhas) - 1 else "")}
@@ -315,7 +336,8 @@ transmissões por LSP, das quais <i>N</i> &minus; 1 são aceitas e o restante é
 <i>E</i> = 4: são <b>5 transmissões, 3 aceitas e 2 cópias por LSP</b>, ou 10 transmissões para os dois LSPs.{extra}</p>
 <p>Repetimos a mesma queda {len(rodadas)} vezes para verificar se o resultado se mantém. Em todas as rodadas houve
 <b>6 LSPs aceitos e 4 cópias descartadas</b>. {variacao}</p>
-{tab(["Rodada", "Transmissões", "Aceitas", "Cópias descartadas", "Enviadas ao R4 caído"], linhas_rodadas, numericas=(0, 1, 2, 3, 4))}
+{tab(["Rodada", "Queda após a partida (s)", "Transmissões", "Aceitas", "Cópias descartadas", "Enviadas ao R4 caído", "Outros LSPs na janela"],
+     linhas_rodadas, numericas=(0, 1, 2, 3, 4, 5, 6))}
 <div class="leg">Tabela 4. Repetições da queda de R4 (capturas <code>q2_inundacao</code> e <code>q2_repeticao_2</code> a <code>{len(rodadas)}</code>).</div>
 <div class="bloco"><h3 class="manual">Comparação com vetor de distância</h3>
 <p>Em vetor de distância, cada roteador conhece apenas o custo até cada destino, informado pelos vizinhos. Modelamos a mesma
@@ -355,7 +377,8 @@ def q3():
     return f"""<h2 class="nova">4. Questão 3: convergência</h2>
 <p>Derrubamos <b>R2</b>, que está no caminho de R1 para R3, R4 e R5. Depois da reconvergência, R1 passa a alcançar R3 pelo
 enlace direto (custo 3 &rarr; 4), R5 por R3 (6 &rarr; 7) e R4 por R3 e R5 (8 &rarr; 12). Repetimos o experimento
-<b>5 vezes</b>, com a queda em momentos diferentes em relação ao último HELLO de R2, e separamos o tempo em duas partes:</p>
+<b>5 vezes</b>, com a queda em momentos diferentes em relação ao último HELLO de R2, sempre entre 31 e 36 s após a partida para não
+coincidir com as renovações de 30 s e 60 s, e separamos o tempo em duas partes:</p>
 <ul><li><b>Detecção:</b> da queda até o primeiro vizinho declarar R2 inativo;</li>
 <li><b>Inundação e recálculo:</b> dessa primeira detecção até a última mudança de tabela na rede.</li></ul>
 {tab(["Rodada", "Queda após o último HELLO (s)", "Detecção (s)", "Rota R1&rarr;R3 recalculada (s)", "Inundação + recálculo (ms)",
@@ -516,16 +539,16 @@ laços transitórios.</p></div>"""
 
 def anexo():
     q2r = ler("q2_inundacao")
-    filtros = "<code>" + " or ".join('udp contains "LSP:10.6.%s.1:%d"' % (nome[1], d["seq"])
-                                     for nome, d in q2r["por_lsp"].items()) + "</code>"
+    filtros = "<code>%s</code>" % html.escape(q2r["filtro"])
     linhas = [["<code>q1_dijkstra</code>", "Q1", "Convergência inicial", '<code>udp contains "LSP"</code>'],
               ["<code>q2_inundacao</code>", "Q2", "Queda de R4", filtros],
-              ["<code>q2_repeticao_2</code> a <code>5</code>", "Q2", "Repetições da queda de R4", '<code>udp contains "LSP"</code>'],
+              *[["<code>q2_repeticao_%d</code>" % x["rodada"], "Q2", "Repetição da queda de R4", "<code>%s</code>" % html.escape(x["filtro"])]
+                for x in q2r["rodadas"][1:]],
               ["<code>q3_convergencia_1</code> a <code>5</code>", "Q3", "Queda de R2, 5 rodadas", '<code>udp contains "HELLO:10.6.2.1"</code> (último HELLO de R2)'],
               ["<code>q4_sequencia</code>", "Q4", "Reinício de R2 e LSPs com seq baixo", '<code>udp contains "LSP:10.6.2.1:0:"</code>'],
               ["<code>q5_confiabilidade</code>", "Q5", "LSP do R5 perdido em R1", '<code>udp contains "LSP:10.6.5.1"</code>'],
               ["<code>q6_ttl_laco</code>", "Q6", "Laço R2-R3 e TTL", '<code>udp contains "ICMP:10.6.5.1:10.6.1.1"</code>']]
-    return f"""<h2 class="nova">Anexo A. Capturas entregues</h2>
+    return f"""<h2 class="pagina">Anexo A. Capturas entregues</h2>
 <p>Os arquivos <code>.pcapng</code> estão em <code>docs/relatorio/capturas/</code>. Basta abrir no Wireshark e aplicar o filtro de
 exibição indicado. O conteúdo de cada pacote aparece em texto ASCII no painel de bytes. Os filtros exatos dos prints estão na barra verde de
 cada figura (o da Figura 3, por ser longo, também está na legenda).</p>
@@ -574,7 +597,7 @@ def main():
     pagina = ('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">'
               "<title>Roteador de estado de enlace sobre UDP - Relatorio - Grupo 6</title><style>"
               + CSS + "</style></head><body>" + corpo + "</body></html>")
-    saida = os.path.join(AQUI, "relatorio.pdf")
+    saida = SAIDA
     pasta = tempfile.mkdtemp(prefix="relatorio_")
     try:
         entrada = os.path.join(pasta, "relatorio.html")

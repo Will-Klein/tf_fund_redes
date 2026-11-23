@@ -84,6 +84,7 @@ class Rede:
         integ.comando_roteador = self.comando
         for n in self.numeros:
             self.subir(n)
+        self.partida = time.time()   # as renovações periódicas saem cerca de 30 s e 60 s depois daqui
         return self
 
     def __exit__(self, *erro):
@@ -107,6 +108,10 @@ class Rede:
                 os.remove(os.path.join(self.pasta, controle))
         if os.path.isdir(os.path.join(self.pasta, "logs")):   # 'logs/' é ignorado pelo git
             os.rename(os.path.join(self.pasta, "logs"), os.path.join(self.pasta, "logs_roteadores"))
+
+    def esperar_instante(self, segundos):
+        """Espera até 'segundos' depois da partida dos roteadores."""
+        time.sleep(max(0, self.partida + segundos - time.time()))
 
     def esperar_convergencia(self, limite=30):
         esperadas = {n: integ.como_tabela(integ.ESPERADA[n]) for n in self.numeros}
@@ -296,16 +301,28 @@ def vetor_distancia(caiu, poison=False, infinito=16):
     return {"mensagens": mensagens, "rodadas": rodadas, "infinito": infinito, "poison_reverse": poison}
 
 
-def uma_queda_do_r4(nome):
-    """Derruba o R4 e conta, na captura e nos logs, as transmissões dos LSPs gerados pela queda."""
+# Quedas entre 31 e 36 s após a partida: a detecção (15 a 20,5 s depois) fica entre as renovações
+# de 30 s e 60 s, e a captura mostra só o efeito de UMA mudança (D52).
+INSTANTES_Q2 = (31, 32.25, 33.5, 34.75, 36)
+ATRASOS_Q3 = (0.3, 1.4, 2.5, 3.6, 4.7)   # somados aos 31 s; variam a fase em relação ao HELLO
+
+
+def renovacoes_entre(rede, inicio, fim, roteadores):
+    """Quantas renovações periódicas os logs registram no intervalo."""
+    return sum(1 for n in roteadores for t, cat, texto in ler_log(rede, n)
+               if cat == "LSP" and "renovacao periodica" in texto and inicio <= t <= fim)
+
+
+def uma_queda_do_r4(nome, instante):
+    """Derruba o R4 no instante dado e conta, na captura e nos logs, os LSPs gerados pela queda."""
     with Rede(nome) as rede:
         rede.esperar_convergencia()
-        time.sleep(2)
+        rede.esperar_instante(instante)
         instante_queda = time.time()
         rede.r[4].proc.kill()
         for n in (2, 5):
             esperar_no_log(rede, n, "10.6.4.1 (127.0.0.1:6004) ficou INATIVO")
-        time.sleep(2)
+        time.sleep(1)
     gerados = {}
     for n in (2, 5):
         for t, cat, texto in ler_log(rede, n):
@@ -313,49 +330,68 @@ def uma_queda_do_r4(nome):
             if cat == "LSP" and m:
                 gerados[(end(n), int(m.group(1)))] = t
     pacotes = []
+    outros = []     # LSPs que não são da queda (renovações), para confirmar que a janela está limpa
     for p in ler_captura(rede):
         if p["texto"].startswith("LSP:"):
             campos = p["texto"].split(":")
             if (campos[1], int(campos[2])) in gerados:
                 pacotes.append(dict(p, origem=campos[1], seq=int(campos[2])))
+            else:
+                outros.append(p)
+    fim_janela = max(p["t"] for p in pacotes) + 0.5
+    extras = sum(1 for p in outros if instante_queda <= p["t"] <= fim_janela)
+    renovacoes = renovacoes_entre(rede, instante_queda, fim_janela, (1, 2, 3, 5))
+    if extras or renovacoes:
+        raise RuntimeError("%s: a janela da queda tem %d LSPs extras e %d renovacoes" % (nome, extras, renovacoes))
     por_lsp = {}
     for (origem, seq) in gerados:
         desse = [p for p in pacotes if p["origem"] == origem and p["seq"] == seq]
-        novos = copias = propria = 0
+        novos = copias = antigos = propria = 0
         for n in (1, 2, 3, 5):
             for _, cat, texto in ler_log(rede, n):
                 if cat != "LSP":
                     continue
                 if texto.startswith("LSP novo: %s seq %d " % (origem, seq)):
                     novos += 1
+                elif texto.startswith("LSP descartado (copia/antigo): %s seq %d (LSDB tem seq %d)" % (origem, seq, seq)):
+                    copias += 1     # mesma sequência: cópia idêntica
                 elif texto.startswith("LSP descartado (copia/antigo): %s seq %d " % (origem, seq)):
-                    copias += 1
+                    antigos += 1    # a LSDB já tinha um LSP mais novo dessa origem
                 elif n == int(origem.split(".")[2]) and texto.startswith("LSP descartado (propria origem): seq %d," % seq):
                     propria += 1
         ao_morto = sum(1 for p in desse if p["para"] == 4)
         por_lsp[nome_curto(origem)] = {
             "seq": seq, "transmissoes": len(desse), "aceitos_como_novos": novos,
-            "descartados_copia": copias, "descartados_propria_origem": propria,
+            "descartados_copia": copias, "descartados_antigos": antigos, "descartados_propria_origem": propria,
             "enviados_ao_R4_morto": ao_morto,
-            "fecha_a_conta": len(desse) == novos + copias + propria + ao_morto,
+            "fecha_a_conta": len(desse) == novos + copias + antigos + propria + ao_morto,
             "duracao_na_captura_ms": round((max(p["t"] for p in desse) - min(p["t"] for p in desse)) * 1000, 3),
             "caminho": ["R%d->R%d" % (p["de"], p["para"]) for p in sorted(desse, key=lambda x: x["t"])]}
     total = {c: sum(d[c] for d in por_lsp.values())
-             for c in ("transmissoes", "aceitos_como_novos", "descartados_copia",
+             for c in ("transmissoes", "aceitos_como_novos", "descartados_copia", "descartados_antigos",
                        "descartados_propria_origem", "enviados_ao_R4_morto")}
     inicio = min(gerados.values())
-    return rede, {"queda": "R4", "lsps_gerados_pela_mudanca": len(gerados), "por_lsp": por_lsp, "total": total,
+    filtro = " or ".join('udp contains "LSP:%s:%d"' % par for par in sorted(gerados))
+    return rede, {"queda": "R4", "queda_apos_a_partida_s": round(instante_queda - rede.partida, 2),
+                  "lsps_gerados_pela_mudanca": len(gerados), "por_lsp": por_lsp, "total": total,
+                  "lsps_extras_na_janela": extras, "renovacoes_na_janela": renovacoes, "filtro": filtro,
                   "segundos_entre_queda_e_primeiro_lsp": round(inicio - instante_queda, 3)}
 
 
-def q2(repeticoes=5):
-    print("\n===== Q2: inundacao (queda do R4, %d rodadas)" % repeticoes, flush=True)
-    rede, principal = uma_queda_do_r4("q2_inundacao")
-    rodadas = [dict(principal["total"], rodada=1, captura="capturas/q2_inundacao.pcapng")]
-    for k in range(2, repeticoes + 1):
-        outra, resultado = uma_queda_do_r4("q2_repeticao_%d" % k)
+def resumo_da_rodada(k, resultado, captura):
+    return dict(resultado["total"], rodada=k, captura=captura, filtro=resultado["filtro"],
+                queda_apos_a_partida_s=resultado["queda_apos_a_partida_s"],
+                lsps_extras_na_janela=resultado["lsps_extras_na_janela"])
+
+
+def q2():
+    print("\n===== Q2: inundacao (queda do R4, %d rodadas)" % len(INSTANTES_Q2), flush=True)
+    rede, principal = uma_queda_do_r4("q2_inundacao", INSTANTES_Q2[0])
+    rodadas = [resumo_da_rodada(1, principal, "capturas/q2_inundacao.pcapng")]
+    for k, instante in enumerate(INSTANTES_Q2[1:], start=2):
+        outra, resultado = uma_queda_do_r4("q2_repeticao_%d" % k, instante)
         salvar(outra, resultado)
-        rodadas.append(dict(resultado["total"], rodada=k, captura="capturas/q2_repeticao_%d.pcapng" % k))
+        rodadas.append(resumo_da_rodada(k, resultado, "capturas/q2_repeticao_%d.pcapng" % k))
     principal["rodadas"] = rodadas
     principal["vetor_distancia"] = [vetor_distancia(4), vetor_distancia(4, infinito=64),
                                     vetor_distancia(4, poison=True), vetor_distancia(4, poison=True, infinito=64)]
@@ -380,17 +416,18 @@ def tempo_dijkstra(repeticoes=20000):
 def q3(rodadas=5):
     print("\n===== Q3: convergencia (queda do R2, %d rodadas)" % rodadas, flush=True)
     medidas = []
-    atrasos = [0.3, 1.4, 2.5, 3.6, 4.7]   # varia o momento da queda em relação ao HELLO
     for k in range(rodadas):
         with Rede("q3_convergencia_%d" % (k + 1)) as rede:
             rede.esperar_convergencia()
-            time.sleep(1 + atrasos[k % 5])
+            rede.esperar_instante(31 + ATRASOS_Q3[k % 5])   # D52: longe das renovações de 30 e 60 s
             queda = time.time()
             rede.r[2].proc.kill()
             esperadas = {n: integ.como_tabela(integ.SEM_R2[n]) for n in (1, 3, 4, 5)}
             ok = integ.esperar_ate(lambda: all(rede.r[n].tabela() == esperadas[n] for n in (1, 3, 4, 5)), 35)
             time.sleep(1)
-        ultimo_hello = max(t for t, cat, _ in ler_log(rede, 2) if cat == "HELLO" and t <= queda)
+        capturados = ler_captura(rede)
+        # Instante real do último HELLO do R2, medido no pacote (o log é gravado logo depois do envio)
+        ultimo_hello = max(p["t"] for p in capturados if p["de"] == 2 and p["texto"].startswith("HELLO") and p["t"] <= queda)
         deteccoes = {}
         for n in (1, 3, 4):
             deteccoes[n] = min(t for t, cat, txt in ler_log(rede, n)
@@ -401,6 +438,9 @@ def q3(rodadas=5):
         rota_r1_r3 = min(t for t, cat, txt in ler_log(rede, 1)
                          if cat == "TABELA" and t >= queda and "10.6.3.0/24 via 10.6.3.1 (custo 4)" in txt)
         ultima = max(mudancas)
+        renovacoes = renovacoes_entre(rede, queda, ultima + 0.5, (1, 3, 4, 5))
+        if renovacoes:
+            raise RuntimeError("Q3 rodada %d: %d renovacoes na janela da queda" % (k + 1, renovacoes))
         gerados = set()
         for n in (1, 3, 4):
             for _, cat, txt in ler_log(rede, n):
@@ -408,12 +448,13 @@ def q3(rodadas=5):
                 if cat == "LSP" and m:
                     gerados.add((end(n), m.group(1)))
         instantes = {}
-        for p in ler_captura(rede):
+        for p in capturados:
             campos = p["texto"].split(":")
             if campos[0] == "LSP" and (campos[1], campos[2]) in gerados and p["para"] != 2:
                 instantes.setdefault((campos[1], campos[2]), []).append(p["t"])
         inundacao = max(max(v) - min(v) for v in instantes.values()) * 1000
         medidas.append({"rodada": k + 1, "tabelas_finais_corretas": ok,
+                        "queda_apos_a_partida_s": round(queda - rede.partida, 2), "renovacoes_na_janela": renovacoes,
                         "queda_apos_ultimo_hello_s": round(queda - ultimo_hello, 3),
                         "deteccao_s": round(primeira - queda, 3),
                         "primeira_deteccao_apos_ultimo_hello_s": round(primeira - ultimo_hello, 3),

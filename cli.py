@@ -106,24 +106,30 @@ def executar(linha, router, forwarder):
 
 
 def run(router, forwarder):
-    """Laço principal: lê uma linha por vez até 'sair' (ou Ctrl+C / fim da entrada)."""
-    print("Roteador %s pronto. %s" % (router.address, AJUDA))
+    """Laço principal: lê uma linha por vez até 'sair' (ou Ctrl+C / fim da entrada).
+
+    Tudo o que aparece na tela passa pela fila do logger, então logs e respostas saem em ordem (D50).
+    """
+    terminal = router.logger
+    terminal.mostrar("Roteador %s pronto. %s" % (router.address, AJUDA))
     while True:
+        terminal.esperar_terminal()   # o prompt só aparece depois do que já estava na fila
         try:
             linha = input("> ")
         except (EOFError, KeyboardInterrupt):
-            print()
+            terminal.mostrar("")
             break
         try:
             texto, continuar = executar(linha, router, forwarder)
         except KeyboardInterrupt:
             # Ctrl+C durante a espera de um ping: encerra limpo, como no input acima (D48)
-            print()
+            terminal.mostrar("")
             break
         except Exception as erro:
             # Um erro num comando não pode derrubar o roteador (D38)
             texto, continuar = "Erro ao executar o comando: %s" % erro, True
         if texto:
-            print(texto)
+            terminal.mostrar(texto)
         if not continuar:
             break
+    terminal.esperar_terminal()       # não perde as últimas linhas ao sair

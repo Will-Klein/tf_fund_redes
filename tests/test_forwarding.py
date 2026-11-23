@@ -31,6 +31,9 @@ class LoggerFalso:
     def log(self, categoria, texto, terminal=True):
         self.linhas.append((categoria, texto))
 
+    def mostrar(self, texto):
+        print(texto)   # o Logger real põe na fila do terminal (D50)
+
 
 class RoteadorFalso:
     """Tem só o que o Forwarder usa do Router: address, lock, logger, route_for, is_local, send."""

@@ -157,7 +157,7 @@ Detalhes e interfaces em `IMPLEMENTATION_PLAN.md`; justificativas em `DECISIONS.
 - **Concorrência:** 3 threads — (1) recepção UDP (bloqueia em `recvfrom`), (2) temporizador
   (verifica a cada 0,5 s: HELLO 5 s, LSP 30 s, vizinho inativo 20 s, aging 90 s), (3) principal = CLI.
   **Um único lock** protege todo o estado do roteador. `ping` espera a resposta com
-  `threading.Event` fora do lock.
+  `threading.Event` fora do lock. O terminal é escrito por uma thread do logger, fora do lock (D50).
 - **Módulos:**
 
 ```

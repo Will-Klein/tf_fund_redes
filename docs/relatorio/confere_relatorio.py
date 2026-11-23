@@ -195,15 +195,28 @@ def contar_q2(nome):
             if cat == "LSP" and m:
                 gerados.add((end(n), m.group(1)))
     outros_motivos = [txt for n in (1, 3) for _, cat, txt in log(nome, n) if "LSP proprio gerado (vizinho 10.6.4.1" in txt]
-    lista = [p for p in pacotes(nome) if p["txt"].startswith("LSP:") and tuple(p["txt"].split(":")[1:3]) in gerados]
-    aceitos = copias = 0
+    todos = pacotes(nome)
+    lista = [p for p in todos if p["txt"].startswith("LSP:") and tuple(p["txt"].split(":")[1:3]) in gerados]
+    # Janela da mudança: da queda do R4 (primeiro LSP gerado menos o atraso medido) até logo depois do último LSP
+    primeiro = min(t for n in (2, 5) for t, cat, txt in log(nome, n) if "LSP proprio gerado (vizinho 10.6.4.1 ficou inativo" in txt)
+    inicio = primeiro - json_de(nome)["segundos_entre_queda_e_primeiro_lsp"]
+    fim = max(p["t"] for p in lista) + 0.5
+    extras = sum(1 for p in todos if p["txt"].startswith("LSP:") and inicio <= p["t"] <= fim
+                 and tuple(p["txt"].split(":")[1:3]) not in gerados)
+    aceitos = copias = antigos = renovacoes = 0
     for n in (1, 2, 3, 5):
-        for _, cat, txt in log(nome, n):
+        for t, cat, txt in log(nome, n):
+            renovacoes += "renovacao periodica" in txt and inicio <= t <= fim
             for o, s in gerados:
                 aceitos += txt.startswith("LSP novo: %s seq %s " % (o, s))
-                copias += txt.startswith("LSP descartado (copia/antigo): %s seq %s " % (o, s))
-    return {"gerados": len(gerados), "transmissoes": len(lista), "aceitos": aceitos, "copias": copias,
-            "ao_r4": sum(p["para"] == 4 for p in lista), "outros": len(outros_motivos)}
+                if txt.startswith("LSP descartado (copia/antigo): %s seq %s " % (o, s)):
+                    if txt.startswith("LSP descartado (copia/antigo): %s seq %s (LSDB tem seq %s)" % (o, s, s)):
+                        copias += 1
+                    else:
+                        antigos += 1
+    return {"gerados": len(gerados), "transmissoes": len(lista), "aceitos": aceitos, "copias": copias, "antigos": antigos,
+            "ao_r4": sum(p["para"] == 4 for p in lista), "outros": len(outros_motivos), "extras": extras,
+            "renovacoes": renovacoes}
 
 
 def dv_independente(caiu, poison, inf):
@@ -274,6 +287,8 @@ def q2():
                  and (c["transmissoes"], c["aceitos"], c["copias"], c["ao_r4"]) ==
                  (rodada["transmissoes"], rodada["aceitos_como_novos"], rodada["descartados_copia"],
                   rodada["enviados_ao_R4_morto"]) and (c["aceitos"], c["copias"]) == (6, 4), (c, rodada))
+        conferir("rodada %d: só os LSPs da queda na janela (0 extras, 0 renovações, 0 descartes de LSP antigo)" % rodada["rodada"],
+                 (c["extras"], c["renovacoes"], c["antigos"]) == (0, 0, 0), c)
     # Fórmula do texto: 2E - (N - 1), na rede sem o R4
     e = {tuple(sorted(k)) for k in enlaces_das_configs() if 4 not in k}
     conferir("fórmula: sem R4, N = 4 e E = 4 dão 5 transmissões, 3 aceitas e 2 cópias por LSP",
@@ -314,13 +329,15 @@ def q3():
             if p["txt"].startswith("LSP:") and tuple(p["txt"].split(":")[1:3]) in gerados and p["para"] != 2:
                 maiores.setdefault(tuple(p["txt"].split(":")[1:3]), []).append(p["t"])
         inundacao = max(max(v) - min(v) for v in maiores.values()) * 1000
+        renovacoes = sum(1 for n in (1, 3, 4, 5) for t, cat, x in log(nome, n)
+                         if "renovacao periodica" in x and queda <= t <= ultima + 0.5)
         ok = (perto(primeira - hello_captura, m["primeira_deteccao_apos_ultimo_hello_s"], 0.01)
               and 20 <= primeira - hello_captura <= 20.6 and not depois
               and perto((max(det.values()) - primeira) * 1000, m["diferenca_entre_detectores_ms"], 1.1)
               and perto((ultima - primeira) * 1000, m["inundacao_e_recalculo_ms"], 1.1)
               and perto(rota - queda, m["rota_r1_r3_apos_queda_s"], 0.002)
               and perto(ultima - queda, m["total_s"], 0.002) and perto(inundacao, m["maior_inundacao_de_um_lsp_ms"], 0.01)
-              and m["tabelas_finais_corretas"])
+              and m["tabelas_finais_corretas"] and renovacoes == 0)
         conferir("rodada %d: detecção %.2f s, %.0f ms de inundação e recálculo, último HELLO a %.2f s da detecção"
                  % (m["rodada"], m["deteccao_s"], m["inundacao_e_recalculo_ms"], primeira - hello_captura), ok, m)
     ordem = sorted(r["medidas"], key=lambda x: x["queda_apos_ultimo_hello_s"])
@@ -426,9 +443,9 @@ def q6():
 def anexo():
     print("\n== Anexo A: cada filtro do Wireshark encontra os pacotes")
     r = json_de("q2_inundacao")
-    filtro_q2 = " or ".join('udp contains "LSP:10.6.%s.1:%d"' % (nome[1], d["seq"]) for nome, d in r["por_lsp"].items())
+    filtro_q2 = r["filtro"]
     casos = [("q1_dijkstra", 'udp contains "LSP"', None), ("q2_inundacao", filtro_q2, r["total"]["transmissoes"])]
-    casos += [("q2_repeticao_%d" % k, 'udp contains "LSP"', None) for k in range(2, 6)]
+    casos += [(os.path.basename(x["captura"])[:-7], x["filtro"], x["transmissoes"]) for x in r["rodadas"][1:]]
     casos += [("q3_convergencia_%d" % k, 'udp contains "HELLO:10.6.2.1"', None) for k in range(1, 6)]
     casos += [("q4_sequencia", 'udp contains "LSP:10.6.2.1:0:"', 1), ("q5_confiabilidade", 'udp contains "LSP:10.6.5.1"', None),
               ("q6_ttl_laco", 'udp contains "ICMP:10.6.5.1:10.6.1.1"', None)]
@@ -445,7 +462,12 @@ def prints():
     print("\n== Prints reais do Wireshark")
     from PIL import Image
     sys.path.insert(0, AQUI)
-    from tira_prints import casos
+    from tira_prints import assinatura, casos
+    caminho_registro = os.path.join(AQUI, "figuras", "prints.json")
+    registro = {}
+    if os.path.exists(caminho_registro):
+        with open(caminho_registro, encoding="utf-8") as arquivo:
+            registro = json.load(arquivo)
     for chave, (captura, filtro) in casos().items():
         arquivo = os.path.join(AQUI, "figuras", "wireshark_%s.png" % chave)
         origem = os.path.join(AQUI, "capturas", captura + ".pcapng")
@@ -454,8 +476,9 @@ def prints():
         imagem = Image.open(arquivo).convert("RGB")
         fim = max(y for y in range(200, imagem.height - 60) if imagem.getpixel((1900, y))[0] > 190)
         no_print = round((fim - 216) / 36)
-        conferir("%s: print de %s mostra as %d linhas do filtro e é mais novo que a captura" % (chave, captura, len(linhas)),
-                 no_print == len(linhas) and os.path.getmtime(arquivo) > os.path.getmtime(origem), (no_print, len(linhas)))
+        mesma = registro.get(chave, {}).get("sha256") == assinatura(captura) and registro.get(chave, {}).get("filtro") == filtro
+        conferir("%s: print de %s mostra as %d linhas do filtro e foi tirado desta captura" % (chave, captura, len(linhas)),
+                 no_print == len(linhas) and mesma, (no_print, len(linhas), "registro confere" if mesma else "registro nao confere"))
     lista = subprocess.run(["pdfimages", "-list", os.path.join(AQUI, "relatorio.pdf")], stdout=subprocess.PIPE,
                            universal_newlines=True, check=True).stdout.splitlines()[2:]
     grandes = [l for l in lista if l.split()[2] == "image" and int(l.split()[3]) >= 1900]
@@ -478,7 +501,7 @@ def pdf():
                  "Questão 5: confiabilidade", "Questão 6: TTL", "Figura 1", "Figura 2", "Figura 3", "Figura 4", "Figura 5", "Figura 6", "Anexo A"]
     tem("as 6 questões, a figura e o anexo", *enunciado)
     q = json_de("q2_inundacao")
-    tem("Q2", "circularam %d pacotes LSP" % q["total"]["transmissoes"], "Todos os pacotes têm origem e destino 127.0.0.1", "%d foram descartados" % q["total"]["descartados_copia"],
+    tem("Q2", "circularam %d pacotes LSP" % q["total"]["transmissoes"], "Todos os pacotes têm origem e destino 127.0.0.1", "macOS", "%d foram descartados" % q["total"]["descartados_copia"],
         *[str(p["seq"]) for p in q["por_lsp"].values()])
     for d in q["vetor_distancia"]:
         if not re.search(r"infinito = %d %d %d" % (d["infinito"], d["rodadas"], d["mensagens"]), corrido):
@@ -489,7 +512,7 @@ def pdf():
     tem("Q4", str(q4r["seq_antigo_na_lsdb_do_r1"]), str(q4r["seq_apos_reinicio_real"]))
     tem("Q5", br(json_de("q5_confiabilidade")["segundos_com_lsdb_desatualizada"], 2))
     tem("Q6", json_de("q6_ttl_laco")["ping_r5_para_r1_durante"][0])
-    for frase in ["até três HELLOs", "uma ou duas renovações", "no mesmo instante, já", "à mão"]:
+    for frase in ["até três HELLOs", "uma ou duas renovações", "no mesmo instante, já", "à mão", "ficaram de fora"]:
         conferir("frase corrigida não aparece mais: " + frase, frase not in corrido)
 
 

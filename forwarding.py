@@ -35,8 +35,8 @@ Começo fixo; o resto da linha é livre:
 
 Como o texto chega ao usuário:
 - msg e ping: o texto é o valor devolvido (a CLI imprime);
-- o que chega pela rede (DADOS recebido, resposta atrasada de ping): handle() imprime na hora
-  (D46), e a linha também vai para o arquivo de log.
+- o que chega pela rede (DADOS recebido, resposta atrasada de ping): handle() mostra na hora, pela
+  fila do terminal (D46, D50), e a linha também vai para o arquivo de log.
 """
 
 import threading
@@ -239,4 +239,4 @@ class Forwarder:
     def mostrar(self, texto):
         """Exibe um texto ao usuário (terminal) e o registra só no arquivo de log (D46)."""
         self.router.logger.log("ENTREGA", texto, terminal=False)
-        print(texto, flush=True)
+        self.router.logger.mostrar(texto)   # pela fila do terminal: nunca espera com o lock (D50)

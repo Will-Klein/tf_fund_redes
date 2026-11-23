@@ -47,23 +47,23 @@ Rede destino       Proximo salto    Custo
 
 Captura: `capturas/q2_inundacao.pcapng`
 
-A queda gerou 2 LSPs novos (R2 e R5, os vizinhos do R4), 19.606 s depois da queda.
+A queda gerou 2 LSPs novos (R2 e R5, os vizinhos do R4), 19.424 s depois da queda.
 
 | LSP de | seq | Transmissões | Aceitos | Cópias descartadas | Ao R4 morto | Caminho |
 |---|---|---|---|---|---|---|
-| R2 | 1795409958 | 6 | 3 | 2 | 1 | R2->R1 R2->R3 R3->R1 R1->R3 R3->R5 R5->R4 |
-| R5 | 1795409957 | 5 | 3 | 2 | 0 | R5->R3 R3->R1 R3->R2 R1->R2 R2->R1 |
+| R2 | 1795462934 | 5 | 3 | 2 | 0 | R2->R1 R2->R3 R1->R3 R3->R1 R3->R5 |
+| R5 | 1795462933 | 6 | 3 | 2 | 1 | R5->R3 R3->R1 R3->R2 R1->R2 R2->R1 R2->R4 |
 | **Total** |  | 11 | 6 | 4 | 1 |  |
 
 Repetições da mesma queda:
 
-| Rodada | Transmissões | Aceitas | Cópias | Ao R4 morto | Captura |
-|---|---|---|---|---|---|
-| 1 | 11 | 6 | 4 | 1 | capturas/q2_inundacao.pcapng |
-| 2 | 11 | 6 | 4 | 1 | capturas/q2_repeticao_2.pcapng |
-| 3 | 11 | 6 | 4 | 1 | capturas/q2_repeticao_3.pcapng |
-| 4 | 11 | 6 | 4 | 1 | capturas/q2_repeticao_4.pcapng |
-| 5 | 11 | 6 | 4 | 1 | capturas/q2_repeticao_5.pcapng |
+| Rodada | Queda após a partida (s) | Transmissões | Aceitas | Cópias | Ao R4 morto | Outros LSPs na janela | Captura |
+|---|---|---|---|---|---|---|---|
+| 1 | 31.01 | 11 | 6 | 4 | 1 | 0 | capturas/q2_inundacao.pcapng |
+| 2 | 32.25 | 11 | 6 | 4 | 1 | 0 | capturas/q2_repeticao_2.pcapng |
+| 3 | 33.51 | 11 | 6 | 4 | 1 | 0 | capturas/q2_repeticao_3.pcapng |
+| 4 | 34.76 | 11 | 6 | 4 | 1 | 0 | capturas/q2_repeticao_4.pcapng |
+| 5 | 36.01 | 11 | 6 | 4 | 1 | 0 | capturas/q2_repeticao_5.pcapng |
 
 Vetor de distância na mesma queda (**modelo** em rodadas síncronas, com atualização disparada; não é medição):
 
@@ -80,22 +80,22 @@ Capturas: `capturas/q3_convergencia_1..5.pcapng`
 
 | Rodada | Queda após o último HELLO (s) | Detecção (s) | Inundação + recálculo (ms) | Maior inundação de um LSP (ms) | Total (s) |
 |---|---|---|---|---|---|
-| 1 | 4.878 | 15.282 | 6.0 | 0.512 | 15.288 |
-| 2 | 0.938 | 19.209 | 15.0 | 0.897 | 19.224 |
-| 3 | 2.037 | 18.128 | 22.0 | 0.401 | 18.15 |
-| 4 | 3.134 | 17.024 | 29.0 | 0.658 | 17.053 |
-| 5 | 4.202 | 16.115 | 33.0 | 0.589 | 16.148 |
+| 1 | 0.777 | 19.527 | 23.0 | 0.874 | 19.55 |
+| 2 | 1.891 | 18.442 | 84.0 | 0.483 | 18.526 |
+| 3 | 2.935 | 17.356 | 71.0 | 0.751 | 17.427 |
+| 4 | 4.08 | 16.248 | 26.0 | 0.829 | 16.274 |
+| 5 | 0.088 | 20.203 | 10.0 | 0.881 | 20.213 |
 
 | Medida | Mín. | Média | Máx. |
 |---|---|---|---|
-| Detecção (s) | 15.282 | 17.152 | 19.209 |
-| Último HELLO até a detecção (s) | 20.147 | 20.189 | 20.317 |
-| Diferença entre R1, R3 e R4 detectarem (ms) | 5.0 | 20.2 | 32.0 |
-| Inundação + recálculo (ms) | 6.0 | 21.0 | 33.0 |
-| Maior inundação de um LSP (ms) | 0.401 | 0.611 | 0.897 |
-| Total (s) | 15.288 | 17.173 | 19.224 |
+| Detecção (s) | 16.248 | 18.355 | 20.203 |
+| Último HELLO até a detecção (s) | 20.291 | 20.309 | 20.333 |
+| Diferença entre R1, R3 e R4 detectarem (ms) | 9.0 | 41.8 | 83.0 |
+| Inundação + recálculo (ms) | 10.0 | 42.8 | 84.0 |
+| Maior inundação de um LSP (ms) | 0.483 | 0.764 | 0.881 |
+| Total (s) | 16.274 | 18.398 | 20.213 |
 
-Uma execução do Dijkstra na `local5` leva cerca de 2.1 µs.
+Uma execução do Dijkstra na `local5` leva cerca de 2.0 µs.
 
 ## Q4. Números de sequência
 

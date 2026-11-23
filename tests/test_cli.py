@@ -8,10 +8,21 @@ from unittest import mock
 import cli
 
 
+class TerminalFalso:
+    """Faz o papel da fila do Logger: mostra o texto na hora."""
+
+    def mostrar(self, texto):
+        print(texto)
+
+    def esperar_terminal(self):
+        pass
+
+
 class RouterFalso:
     address = "10.6.1.1"
 
     def __init__(self, tabela=None, lsdb=None, vizinhos=None):
+        self.logger = TerminalFalso()
         self.tabela = tabela or {}
         self.lsdb = lsdb or {}
         self.vizinhos = vizinhos or []
