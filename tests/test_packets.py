@@ -87,6 +87,13 @@ class TestMalformados(unittest.TestCase):
                       b"ICMP:10.3.1.1:10.3.4.1: 16:42:8"]:     # espaço também não
             self.malformado(dados)
 
+    def test_numero_gigante_e_malformado(self):
+        # D51: no Python 3.11+ o int() levantaria ValueError com mais de 4300 dígitos
+        for dados in [b"LSP:10.3.1.1:" + b"9" * 5000 + b":", b"HELLO:10." + b"9" * 5000 + b".1.1",
+                      b"ICMP:10.3.1.1:10.3.4.1:" + b"9" * 5000 + b":42:8", b"LSP:10.3.1.1:" + b"9" * 21 + b":"]:
+            self.malformado(dados)
+        self.assertEqual(parse(b"LSP:10.3.1.1:" + b"9" * 20 + b":").seq, int("9" * 20))   # 20 dígitos valem
+
     def test_endereco_invalido(self):
         for dados in [b"HELLO:10.3.1", b"HELLO:10.3.1.256", b"HELLO:abc", b"HELLO:",
                       b"HELLO:10.3.1.1.5", b"LSP:10.3.1:5:", b"LSP:10.3.1.1:5:10.3.2=1",

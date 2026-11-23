@@ -111,6 +111,13 @@ class TestConfig(unittest.TestCase):
             self.erro("endereco 10.6.1.1\nporta %s\n" % porta, "linha 2")
         self.erro("endereco 10.6.1.1\nporta\n", "linha 2")
 
+    def test_numero_gigante_na_config(self):
+        # D51: vira erro com o número da linha, em qualquer versão do Python
+        grande = "9" * 5000
+        self.erro("endereco 10.6.1.1\nporta %s\n" % grande, "linha 2")
+        self.erro("endereco 10.6.1.1\nvizinho 127.0.0.1 6002 %s\n" % grande, "linha 2")
+        self.erro("endereco 10.%s.1.1\n" % grande, "linha 1")
+
     def test_porta_repetida(self):
         self.erro("endereco 10.6.1.1\nporta 6000\nporta 6001\n", "linha 3")
 

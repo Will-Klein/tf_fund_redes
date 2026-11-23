@@ -8,6 +8,7 @@ Threads (D02), todas usando o mesmo lock para mexer no estado:
 - recepção: recvfrom() -> filtro de vizinho -> packets.parse -> handle_hello / handle_lsp / forwarder;
 - temporizador: tick() a cada 0,5 s (HELLO 5 s, vizinho inativo 20 s, renovação do LSP 30 s, aging 90 s);
 - principal: cli.run() lê os comandos do usuário.
+A escrita no terminal fica numa thread do logger, fora do lock (D50).
 
 Textos de log sem acento (D39).
 """
@@ -332,6 +333,9 @@ def main():
         print("Erro ao abrir a porta UDP %d: %s" % (cfg.port, erro))
         sys.exit(1)
     cli.run(router, router.forwarder)
+    # O log já está no arquivo e a fila do terminal já foi esvaziada (com limite de tempo). os._exit
+    # encerra na hora, mesmo se o terminal estiver parado com a thread dele esperando (D50).
+    os._exit(0)
 
 
 if __name__ == "__main__":

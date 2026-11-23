@@ -34,6 +34,10 @@ ICMP_ECHO_REQUEST = 8      # pedido de eco
 ICMP_TIME_EXCEEDED = 11    # tempo excedido
 TIPOS_ICMP = (ICMP_ECHO_REPLY, ICMP_DEST_UNREACHABLE, ICMP_ECHO_REQUEST, ICMP_TIME_EXCEEDED)
 
+# Maior quantidade de dígitos aceita num campo numérico. 20 dígitos cobrem qualquer inteiro de 64 bits.
+# Sem esse limite, a partir do Python 3.11 o int() levanta ValueError com mais de 4300 dígitos (D51).
+MAX_DIGITOS = 20
+
 # Quantos campos cada tipo de pacote tem depois do split(':'), contando o próprio tipo
 NUM_CAMPOS = {"HELLO": 2, "LSP": 4, "DADOS": 6, "ICMP": 6}
 
@@ -47,11 +51,11 @@ class MalformedPacket(Exception):
 # ---------------------------------------------------------------------------------------------
 
 def so_digitos(texto):
-    """True se o texto tem só os dígitos 0-9.
+    """True se o texto tem só os dígitos 0-9, e no máximo MAX_DIGITOS deles.
 
     Não usamos str.isdigit(), que aceita '²', nem int() direto, que aceita '+5', ' 5' e '-5'.
     """
-    return texto != "" and all(c in "0123456789" for c in texto)
+    return 0 < len(texto) <= MAX_DIGITOS and all(c in "0123456789" for c in texto)
 
 
 def is_virtual_addr(s):

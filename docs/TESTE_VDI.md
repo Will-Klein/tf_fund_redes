@@ -199,7 +199,16 @@ No R2, `ping 10.6.3.1 1` mostra tempo excedido do R1, e `ping 10.6.3.1 2` chega 
 passos tirando o `#`. Se religar **antes** dos 20 s, os vizinhos não percebem a queda e não sincronizam: a LSDB do
 roteador religado pode levar até cerca de 30 s (a próxima renovação) para ficar completa. Não é defeito, é a regra do enunciado.
 
-**B12. Anotar** os resultados na tabela do fim e me passar (vai para o `docs/PROGRESS.md`). Depois
+**B12. Selecionar texto na janela do roteador.** No console clássico do Windows, selecionar texto
+pausa a saída do programa. O roteador não pode parar por causa disso (D50). Com R1, R2 e R3 ligados:
+
+1. Na janela do **R1**, clique e arraste para selecionar um trecho e **deixe selecionado por 35 s**,
+   sem apertar nenhuma tecla.
+2. No **R3**, durante esse tempo, rode `vizinhos`: o `10.6.1.1` tem que continuar na lista, e não
+   pode aparecer `10.6.1.1 ... ficou INATIVO`.
+3. Solte a seleção no R1 com `Esc` (ou clique com o botão direito). As linhas acumuladas aparecem na ordem.
+
+**B13. Anotar** os resultados na tabela do fim e me passar (vai para o `docs/PROGRESS.md`). Depois
 todos digitam `sair`.
 
 *(Todas as saídas acima foram conferidas rodando os 3 roteadores do triângulo numa só máquina, e o
@@ -240,4 +249,5 @@ ficam dentro da VM do William e não passam pela Ethernet0).
 | B9: R2 voltou → rota via R2 de novo | | |
 | B10: R3 caiu e voltou (e LSP sumiu em 90 s, opcional) | | |
 | B11: enlace R2–R3 caiu, tabelas e ping pelo R1, e voltou | | |
+| B12: 35 s com texto selecionado no R1, sem ficar inativo | | |
 | Wireshark na Ethernet0 (opcional) | | |

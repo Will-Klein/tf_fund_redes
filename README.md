@@ -56,14 +56,16 @@ vizinho 192.168.0.13 6000 7
 Configurações prontas:
 - `configs/local5/` — 5 roteadores em `127.0.0.1`, portas 6001–6005 (testes e relatório).
 - `configs/grupo/` — rede do grupo (3 roteadores) para a apresentação; troque `IP_Rn` pelo IP real de cada VM.
-- `configs/teste_vdi/` — só R1 e R3, para o teste rápido entre duas VMs (`docs/TESTE_VDI.md`).
+- `configs/teste_vdi/` — R1, R2 e R3 em 2 VMs (R1 e R2 na mesma VM, portas 6000 e 6002), para o teste entre VMs (`docs/TESTE_VDI.md`).
 
 ## Queda de roteador e de enlace
 
 - **Roteador:** digite `sair` nele. Os vizinhos o declaram inativo em até 20 s e a rede reconverge.
   Espere a reconvergência antes de religar: assim os vizinhos o sincronizam assim que ele volta.
-- **Enlace:** digite `sair` em um dos dois roteadores, comente com `#` a linha `vizinho` do outro lado,
-  espere cerca de 20 s e ligue-o de novo. Para restaurar, repita tirando o `#`.
+- **Enlace:** digite `sair` em um dos dois roteadores. **No arquivo do roteador que você desligou**,
+  comente com `#` a linha do vizinho cujo enlace vai cair, espere cerca de 20 s e ligue-o de novo.
+  A configuração só é lida na partida: editar o arquivo de um roteador ligado não derruba o enlace.
+  Para restaurar, repita tirando o `#`.
 
 ## Relatório e capturas
 

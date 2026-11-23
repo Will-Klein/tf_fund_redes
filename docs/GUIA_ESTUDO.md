@@ -50,13 +50,16 @@ Router usa: packets.parse/encode (ler e montar pacotes, William)
 
 ### 3. As três threads e o lock
 
-Uma *thread* é uma "linha de execução" dentro do mesmo programa. O roteador tem 3, rodando ao mesmo tempo:
+Uma *thread* é uma "linha de execução" dentro do mesmo programa. O roteador tem 3 que mexem no estado, rodando ao mesmo tempo:
 
 | Thread | Função | O que faz |
 |---|---|---|
 | principal | `cli.run` | espera o usuário digitar e executa o comando |
 | recepção | `Router.receive_loop` | fica parada em `recvfrom()` até chegar um datagrama; então chama `handle_datagram` |
 | temporizador | `Router.timer_loop` | a cada 0,5 s chama `tick()`, que cuida de tudo que depende de tempo |
+
+Existe ainda uma quarta thread, bem simples, dentro do `Logger`: ela só escreve no terminal e não toca
+no estado do roteador (D50, ver seção 8).
 
 **Por que um lock (`self.lock`)?** As três mexem no mesmo estado: vizinhos, LSDB e tabela. Sem
 lock, a recepção poderia estar alterando a LSDB no exato momento em que o temporizador apaga um LSP
@@ -173,6 +176,12 @@ endereço. É assim que um endereço virtual vira um envio UDP de verdade.
 - O arquivo é aberto com `"a"` (acrescentar): um reinício não apaga o histórico (D37).
 - Tem um lock próprio, para linhas de threads diferentes não se misturarem.
 - `terminal=False` só no HELLO: ele vai para o arquivo, mas não enche a tela (D34).
+- **O terminal é escrito por uma thread própria, a partir de uma fila (D50).** `log()` grava o arquivo na
+  hora e só coloca a linha na fila (`mostrar`). Por quê? O `log()` é chamado com o lock do roteador. Se ele
+  imprimisse direto e o terminal parasse (texto selecionado no console do Windows, por exemplo), o lock
+  ficaria preso e o roteador pararia de mandar HELLO: em 20 s os vizinhos o declarariam inativo. Com a fila,
+  só a thread do terminal espera. Respostas de comandos e mensagens recebidas passam pela mesma fila, então
+  tudo aparece na ordem. Ao sair, `esperar_terminal` mostra o que falta, com limite de 2 s.
 - Tudo sem acento (D39): um teste real mostrou que acento pode derrubar o programa num terminal sem suporte.
 
 ### 9. `cli.py`
@@ -312,7 +321,9 @@ loga, e o roteador continua vivo (RF04).
 
 **Por que `so_digitos` e não `int()`?** `int()` aceita `"+16"`, `" 16"` e `"-1"`, e
 `str.isdigit()` aceita `"²"`. O enunciado diz "valores não numéricos são malformados", então só
-aceitamos os caracteres `0` a `9`. A mesma função valida a configuração e o TTL do `ping` na CLI.
+aceitamos os caracteres `0` a `9`, com no máximo 20 dígitos: a partir do Python 3.11, o `int()` dá erro
+acima de 4300 dígitos, e 20 já cobrem qualquer inteiro de 64 bits (D51). A mesma função valida a
+configuração e o TTL do `ping` na CLI.
 
 **A lista do LSP.** `"10.3.2.1=1;10.3.4.1=3"` vira `{"10.3.2.1": 1, "10.3.4.1": 3}`:
 - Lista vazia `LSP:10.3.1.1:1767712001:`: o 4º campo é `""` e vira `{}` (RF11).
