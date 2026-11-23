@@ -1,0 +1,62 @@
+2026-11-23 02:03:18.129 [ROTEADOR] 10.6.1.1 iniciado na porta UDP 6001 com 2 vizinhos configurados
+2026-11-23 02:03:18.129 [HELLO] HELLO enviado a 2 vizinhos configurados
+2026-11-23 02:03:18.129 [HELLO] HELLO recebido de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:18.129 [VIZINHO] 10.6.3.1 (127.0.0.1:6003) ficou ATIVO
+2026-11-23 02:03:18.129 [LSP] LSP proprio gerado (vizinho 10.6.3.1 ficou ativo): seq 1795410198 [10.6.3.1=4]
+2026-11-23 02:03:18.130 [TABELA] tabela recalculada (LSP proprio: vizinho 10.6.3.1 ficou ativo): MUDOU -> 10.6.3.0/24 via 10.6.3.1 (custo 4)
+2026-11-23 02:03:18.130 [LSP] sincronizacao: 1 LSPs enviados a 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:18.130 [HELLO] HELLO recebido de 10.6.2.1 (127.0.0.1:6002)
+2026-11-23 02:03:18.130 [VIZINHO] 10.6.2.1 (127.0.0.1:6002) ficou ATIVO
+2026-11-23 02:03:18.130 [LSP] LSP proprio gerado (vizinho 10.6.2.1 ficou ativo): seq 1795410199 [10.6.2.1=1, 10.6.3.1=4]
+2026-11-23 02:03:18.130 [TABELA] tabela recalculada (LSP proprio: vizinho 10.6.2.1 ficou ativo): MUDOU -> 10.6.2.0/24 via 10.6.2.1 (custo 1); 10.6.3.0/24 via 10.6.3.1 (custo 4)
+2026-11-23 02:03:18.130 [LSP] sincronizacao: 1 LSPs enviados a 10.6.2.1 (127.0.0.1:6002)
+2026-11-23 02:03:23.177 [HELLO] HELLO enviado a 2 vizinhos configurados
+2026-11-23 02:03:23.178 [HELLO] HELLO recebido de 10.6.2.1 (127.0.0.1:6002)
+2026-11-23 02:03:23.178 [LSP] LSP novo: 10.6.2.1 seq 1795410199 [10.6.1.1=1, 10.6.4.1=7], de 10.6.2.1 (127.0.0.1:6002)
+2026-11-23 02:03:23.178 [TABELA] tabela recalculada (LSP novo de 10.6.2.1): MUDOU -> 10.6.2.0/24 via 10.6.2.1 (custo 1); 10.6.3.0/24 via 10.6.3.1 (custo 4); 10.6.4.0/24 via 10.6.2.1 (custo 8)
+2026-11-23 02:03:23.178 [LSP] LSP novo: 10.6.3.1 seq 1795410200 [10.6.1.1=4, 10.6.2.1=2, 10.6.5.1=3], de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:23.179 [TABELA] tabela recalculada (LSP novo de 10.6.3.1): MUDOU -> 10.6.2.0/24 via 10.6.2.1 (custo 1); 10.6.3.0/24 via 10.6.3.1 (custo 4); 10.6.4.0/24 via 10.6.2.1 (custo 8); 10.6.5.0/24 via 10.6.3.1 (custo 7)
+2026-11-23 02:03:23.179 [LSP] LSP descartado (copia/antigo): 10.6.2.1 seq 1795410199 (LSDB tem seq 1795410199), de 10.6.2.1 (127.0.0.1:6002)
+2026-11-23 02:03:23.179 [LSP] LSP descartado (propria origem): seq 1795410199, de 10.6.2.1 (127.0.0.1:6002)
+2026-11-23 02:03:23.179 [LSP] LSP descartado (propria origem): seq 1795410199, de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:23.179 [LSP] LSP descartado (copia/antigo): 10.6.3.1 seq 1795410199 (LSDB tem seq 1795410200), de 10.6.2.1 (127.0.0.1:6002)
+2026-11-23 02:03:23.179 [LSP] LSP novo: 10.6.4.1 seq 1795410199 [10.6.2.1=7, 10.6.5.1=5], de 10.6.2.1 (127.0.0.1:6002)
+2026-11-23 02:03:23.179 [TABELA] tabela recalculada (LSP novo de 10.6.4.1): sem mudanca
+2026-11-23 02:03:23.179 [LSP] LSP descartado (copia/antigo): 10.6.3.1 seq 1795410200 (LSDB tem seq 1795410200), de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:23.179 [LSP] LSP descartado (copia/antigo): 10.6.3.1 seq 1795410200 (LSDB tem seq 1795410200), de 10.6.2.1 (127.0.0.1:6002)
+2026-11-23 02:03:23.180 [HELLO] HELLO recebido de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:23.180 [LSP] LSP novo: 10.6.2.1 seq 1795410200 [10.6.1.1=1, 10.6.3.1=2, 10.6.4.1=7], de 10.6.2.1 (127.0.0.1:6002)
+2026-11-23 02:03:23.180 [TABELA] tabela recalculada (LSP novo de 10.6.2.1): MUDOU -> 10.6.2.0/24 via 10.6.2.1 (custo 1); 10.6.3.0/24 via 10.6.2.1 (custo 3); 10.6.4.0/24 via 10.6.2.1 (custo 8); 10.6.5.0/24 via 10.6.2.1 (custo 6)
+2026-11-23 02:03:23.180 [LSP] LSP novo: 10.6.5.1 seq 1795410203 [10.6.3.1=3], de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:23.180 [TABELA] tabela recalculada (LSP novo de 10.6.5.1): sem mudanca
+2026-11-23 02:03:23.180 [LSP] LSP descartado (copia/antigo): 10.6.2.1 seq 1795410200 (LSDB tem seq 1795410200), de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:23.180 [LSP] LSP descartado (copia/antigo): 10.6.5.1 seq 1795410203 (LSDB tem seq 1795410203), de 10.6.2.1 (127.0.0.1:6002)
+2026-11-23 02:03:23.180 [LSP] LSP novo: 10.6.5.1 seq 1795410204 [10.6.3.1=3, 10.6.4.1=5], de 10.6.2.1 (127.0.0.1:6002)
+2026-11-23 02:03:23.181 [TABELA] tabela recalculada (LSP novo de 10.6.5.1): sem mudanca
+2026-11-23 02:03:23.181 [LSP] LSP descartado (copia/antigo): 10.6.5.1 seq 1795410204 (LSDB tem seq 1795410204), de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:28.218 [HELLO] HELLO recebido de 10.6.2.1 (127.0.0.1:6002)
+2026-11-23 02:03:28.222 [HELLO] HELLO enviado a 2 vizinhos configurados
+2026-11-23 02:03:28.224 [HELLO] HELLO recebido de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:33.264 [HELLO] HELLO enviado a 2 vizinhos configurados
+2026-11-23 02:03:33.267 [HELLO] HELLO recebido de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:38.305 [HELLO] HELLO enviado a 2 vizinhos configurados
+2026-11-23 02:03:38.306 [HELLO] HELLO recebido de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:43.342 [HELLO] HELLO recebido de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:43.356 [HELLO] HELLO enviado a 2 vizinhos configurados
+2026-11-23 02:03:48.389 [HELLO] HELLO recebido de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:48.390 [LSP] LSP novo: 10.6.3.1 seq 1795410201 [10.6.1.1=4, 10.6.5.1=3], de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:48.390 [TABELA] tabela recalculada (LSP novo de 10.6.3.1): sem mudanca
+2026-11-23 02:03:48.390 [LSP] LSP novo: 10.6.3.1 seq 1795410202 [10.6.1.1=4, 10.6.5.1=3], de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:48.390 [TABELA] tabela recalculada (LSP novo de 10.6.3.1): sem mudanca
+2026-11-23 02:03:48.399 [LSP] LSP novo: 10.6.5.1 seq 1795410205 [10.6.3.1=3, 10.6.4.1=5], de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:48.399 [TABELA] tabela recalculada (LSP novo de 10.6.5.1): sem mudanca
+2026-11-23 02:03:48.403 [HELLO] HELLO enviado a 2 vizinhos configurados
+2026-11-23 02:03:48.403 [VIZINHO] 10.6.2.1 (127.0.0.1:6002) ficou INATIVO (sem HELLO ha 20 s)
+2026-11-23 02:03:48.403 [LSP] LSP proprio gerado (vizinho 10.6.2.1 ficou inativo): seq 1795410200 [10.6.3.1=4]
+2026-11-23 02:03:48.403 [TABELA] tabela recalculada (LSP proprio: vizinho 10.6.2.1 ficou inativo): MUDOU -> 10.6.2.0/24 via 10.6.3.1 (custo 19); 10.6.3.0/24 via 10.6.3.1 (custo 4); 10.6.4.0/24 via 10.6.3.1 (custo 12); 10.6.5.0/24 via 10.6.3.1 (custo 7)
+2026-11-23 02:03:48.403 [LSP] LSP proprio gerado (renovacao periodica): seq 1795410201 [10.6.3.1=4]
+2026-11-23 02:03:48.403 [TABELA] tabela recalculada (LSP proprio: renovacao periodica): sem mudanca
+2026-11-23 02:03:48.411 [LSP] LSP novo: 10.6.4.1 seq 1795410200 [10.6.5.1=5], de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:48.411 [TABELA] tabela recalculada (LSP novo de 10.6.4.1): MUDOU -> 10.6.3.0/24 via 10.6.3.1 (custo 4); 10.6.4.0/24 via 10.6.3.1 (custo 12); 10.6.5.0/24 via 10.6.3.1 (custo 7)
+2026-11-23 02:03:48.411 [LSP] LSP novo: 10.6.4.1 seq 1795410201 [10.6.5.1=5], de 10.6.3.1 (127.0.0.1:6003)
+2026-11-23 02:03:48.411 [TABELA] tabela recalculada (LSP novo de 10.6.4.1): sem mudanca

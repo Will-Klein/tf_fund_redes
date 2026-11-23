@@ -163,7 +163,7 @@ endereço. É assim que um endereço virtual vira um envio UDP de verdade.
   sem esse `except`, a tela encheria de `[ERRO]` a cada 5 s logo depois de o professor derrubar
   um roteador. A queda continua sendo detectada pelos 20 s sem HELLO, como manda o enunciado.
 - `send()` captura `OSError` (erro de rede ao enviar).
-- `cli.run` também captura erro de um comando (D38).
+- `cli.run` também captura erro de um comando (D38), e Ctrl+C durante um `ping` encerra sem erro (D48).
 
 ### 8. `log.py`
 
@@ -367,7 +367,8 @@ Detalhes que o professor pode perguntar:
   roteador para com `linha 10: IP do vizinho invalido 'IP_R2'`, em vez de rodar com um endereço errado.
 - **Interoperabilidade** é só acrescentar uma linha `vizinho <IP do outro grupo> <porta> <custo>`,
   com o mesmo custo dos dois lados.
-- O arquivo é lido como UTF-8, porque os comentários podem ter acento.
+- O arquivo é lido como UTF-8, porque os comentários podem ter acento, e aceita a marca BOM que o
+  Bloco de Notas do Windows pode gravar no início do arquivo (D48).
 
 ### 2C. Perguntas prováveis (packets/config)
 

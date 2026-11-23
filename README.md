@@ -1,13 +1,11 @@
 # Roteador de estado de enlace sobre UDP — Grupo 6
 
-Trabalho final de Fundamentos de Redes: roteador de estado de enlace (inspirado no OSPF) executando
+Trabalho final de Fundamentos de Redes de Computadores: roteador de estado de enlace (inspirado no OSPF) executando
 como aplicação sobre UDP. Descobre vizinhos com HELLO, inunda LSPs, monta a LSDB, calcula a tabela
 com Dijkstra e encaminha DADOS/ICMP com TTL (`ping`, tempo excedido, destino inalcançável).
 
-Integrantes: William, Frederico e Gustavo. Endereços virtuais `10.6.R.1` (R1 William,
+Integrantes: William de Oliveira Klein, Gustavo de Freitas Fidélis e Frederico Abreu Miguens Nizoli. Endereços virtuais `10.6.R.1` (R1 William,
 R2 Frederico, R3 Gustavo).
-
-> **Estado:** em desenvolvimento (código completo; faltam o teste nas VMs, a interoperabilidade e o relatório). Andamento em `docs/PROGRESS.md`.
 
 ## Requisitos
 
@@ -59,6 +57,19 @@ Configurações prontas:
 - `configs/local5/` — 5 roteadores em `127.0.0.1`, portas 6001–6005 (testes e relatório).
 - `configs/grupo/` — rede do grupo (3 roteadores) para a apresentação; troque `IP_Rn` pelo IP real de cada VM.
 - `configs/teste_vdi/` — só R1 e R3, para o teste rápido entre duas VMs (`docs/TESTE_VDI.md`).
+
+## Queda de roteador e de enlace
+
+- **Roteador:** digite `sair` nele. Os vizinhos o declaram inativo em até 20 s e a rede reconverge.
+  Espere a reconvergência antes de religar: assim os vizinhos o sincronizam assim que ele volta.
+- **Enlace:** digite `sair` em um dos dois roteadores, comente com `#` a linha `vizinho` do outro lado,
+  espere cerca de 20 s e ligue-o de novo. Para restaurar, repita tirando o `#`.
+
+## Relatório e capturas
+
+- `docs/relatorio/relatorio.pdf`: relatório com as respostas das questões 1 a 6.
+- `docs/relatorio/capturas/`: capturas `.pcapng` usadas no relatório.
+- `docs/relatorio/evidencias/`: logs dos roteadores e números medidos em cada experimento.
 
 ## Testes
 

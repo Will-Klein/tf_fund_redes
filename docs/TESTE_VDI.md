@@ -181,7 +181,25 @@ R1 e o R2 mostram `10.6.3.1 ... ficou INATIVO`, e a `tabela` do R1 fica só com 
 nenhum `[ERRO]`. *Opcional (envelhecimento, critério 2):* espere mais 90 s e rode `lsdb` no R1: a
 linha de origem `10.6.3.1` some. O Gustavo liga o R3 de novo e tudo volta.
 
-**B11. Anotar** os resultados na tabela do fim e me passar (vai para o `docs/PROGRESS.md`). Depois
+**B11. Queda de um enlace** (o professor pode derrubar "um roteador ou enlace"). O programa não tem
+comando para isso: o enlace cai quando um dos lados deixa de listar o vizinho. Vamos derrubar R2–R3:
+
+1. No PowerShell do R2, digite `sair`.
+2. Abra `notepad configs\teste_vdi\r2.conf`, coloque `#` no começo da linha `vizinho` do R3 (custo 2) e salve.
+3. **Espere uns 20 s**, até o R1 e o R3 mostrarem `10.6.2.1 ... ficou INATIVO`.
+4. Ligue de novo: `py router.py configs\teste_vdi\r2.conf`.
+
+Em cerca de 7 s as tabelas devem ficar assim:
+```
+R1: 10.6.2.0/24 via 10.6.2.1 (1)   10.6.3.0/24 via 10.6.3.1 (5)
+R2: 10.6.1.0/24 via 10.6.1.1 (1)   10.6.3.0/24 via 10.6.1.1 (6)
+R3: 10.6.1.0/24 via 10.6.1.1 (5)   10.6.2.0/24 via 10.6.1.1 (6)
+```
+No R2, `ping 10.6.3.1 1` mostra tempo excedido do R1, e `ping 10.6.3.1 2` chega ao R3. Para voltar, repita os
+passos tirando o `#`. Se religar **antes** dos 20 s, os vizinhos não percebem a queda e não sincronizam: a LSDB do
+roteador religado pode levar até cerca de 30 s (a próxima renovação) para ficar completa. Não é defeito, é a regra do enunciado.
+
+**B12. Anotar** os resultados na tabela do fim e me passar (vai para o `docs/PROGRESS.md`). Depois
 todos digitam `sair`.
 
 *(Todas as saídas acima foram conferidas rodando os 3 roteadores do triângulo numa só máquina, e o
@@ -221,4 +239,5 @@ ficam dentro da VM do William e não passam pela Ethernet0).
 | B8: R2 caiu → inativo em ~20 s, R1→R3 direto (5), sem `[ERRO]` | | |
 | B9: R2 voltou → rota via R2 de novo | | |
 | B10: R3 caiu e voltou (e LSP sumiu em 90 s, opcional) | | |
+| B11: enlace R2–R3 caiu, tabelas e ping pelo R1, e voltou | | |
 | Wireshark na Ethernet0 (opcional) | | |

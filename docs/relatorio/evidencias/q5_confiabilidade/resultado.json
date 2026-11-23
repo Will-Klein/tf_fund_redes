@@ -1,0 +1,53 @@
+{
+  "queda": "R4",
+  "copias_perdidas_pelo_r1": [
+    "1795410447.560 10.6.1.1 perdeu de 127.0.0.1:6003: LSP:10.6.5.1:1795410429:10.6.3.1=3",
+    "1795410447.560 10.6.1.1 perdeu de 127.0.0.1:6002: LSP:10.6.5.1:1795410429:10.6.3.1=3"
+  ],
+  "tabela_r1_com_lsdb_desatualizada": [
+    "Rede destino       Proximo salto    Custo",
+    "10.6.2.0/24        10.6.2.1         1",
+    "10.6.3.0/24        10.6.2.1         3",
+    "10.6.4.0/24        10.6.2.1         11",
+    "10.6.5.0/24        10.6.2.1         6"
+  ],
+  "lsdb_r1_desatualizada": [
+    "Origem           Seq          Vizinhos (custo)",
+    "10.6.1.1         1795410423   10.6.2.1=1, 10.6.3.1=4",
+    "10.6.2.1         1795410425   10.6.1.1=1, 10.6.3.1=2",
+    "10.6.3.1         1795410424   10.6.1.1=4, 10.6.2.1=2, 10.6.5.1=3",
+    "10.6.4.1         1795410423   10.6.2.1=7, 10.6.5.1=5",
+    "10.6.5.1         1795410428   10.6.3.1=3, 10.6.4.1=5"
+  ],
+  "tabela_r3_no_mesmo_momento": [
+    "Rede destino       Proximo salto    Custo",
+    "10.6.1.0/24        10.6.2.1         3",
+    "10.6.2.0/24        10.6.2.1         2",
+    "10.6.5.0/24        10.6.5.1         3"
+  ],
+  "ping_r1_para_r4_nesse_momento": [
+    "Destino inalcancavel informado por 10.6.2.1 (id=1) RTT=1.06 ms"
+  ],
+  "recuperou": true,
+  "tabela_r1_depois": [
+    "Rede destino       Proximo salto    Custo",
+    "10.6.2.0/24        10.6.2.1         1",
+    "10.6.3.0/24        10.6.2.1         3",
+    "10.6.5.0/24        10.6.2.1         6"
+  ],
+  "lsdb_r1_depois": [
+    "Origem           Seq          Vizinhos (custo)",
+    "10.6.1.1         1795410424   10.6.2.1=1, 10.6.3.1=4",
+    "10.6.2.1         1795410426   10.6.1.1=1, 10.6.3.1=2",
+    "10.6.3.1         1795410425   10.6.1.1=4, 10.6.2.1=2, 10.6.5.1=3",
+    "10.6.4.1         1795410423   10.6.2.1=7, 10.6.5.1=5",
+    "10.6.5.1         1795410430   10.6.3.1=3"
+  ],
+  "lsp_que_recuperou": "LSP novo: 10.6.5.1 seq 1795410430 [10.6.3.1=3], de 10.6.3.1 (127.0.0.1:6003)",
+  "renovacao_do_r5": [
+    "LSP proprio gerado (renovacao periodica): seq 1795410430 [10.6.3.1=3]"
+  ],
+  "segundos_com_lsdb_desatualizada": 5.077,
+  "segundos_desde_a_queda_ate_notar": 22.4,
+  "captura": "capturas/q5_confiabilidade.pcapng"
+}

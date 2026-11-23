@@ -1,0 +1,171 @@
+{
+  "enlace_cortado": "R1-R2",
+  "tabelas_antes": {
+    "R2": [
+      "Rede destino       Proximo salto    Custo",
+      "10.6.1.0/24        10.6.1.1         1",
+      "10.6.3.0/24        10.6.3.1         2",
+      "10.6.4.0/24        10.6.4.1         7",
+      "10.6.5.0/24        10.6.3.1         5"
+    ],
+    "R3": [
+      "Rede destino       Proximo salto    Custo",
+      "10.6.1.0/24        10.6.2.1         3",
+      "10.6.2.0/24        10.6.2.1         2",
+      "10.6.4.0/24        10.6.5.1         8",
+      "10.6.5.0/24        10.6.5.1         3"
+    ]
+  },
+  "tabelas_durante_o_laco": {
+    "R2": [
+      "Rede destino       Proximo salto    Custo",
+      "10.6.1.0/24        10.6.3.1         6",
+      "10.6.3.0/24        10.6.3.1         2",
+      "10.6.4.0/24        10.6.4.1         7",
+      "10.6.5.0/24        10.6.3.1         5"
+    ],
+    "R3": [
+      "Rede destino       Proximo salto    Custo",
+      "10.6.1.0/24        10.6.2.1         3",
+      "10.6.2.0/24        10.6.2.1         2",
+      "10.6.4.0/24        10.6.5.1         8",
+      "10.6.5.0/24        10.6.5.1         3"
+    ]
+  },
+  "ping_r5_para_r1_durante": [
+    "Tempo excedido informado por 10.6.2.1 (id=1) RTT=3.16 ms"
+  ],
+  "saltos_do_pedido": [
+    {
+      "enlace": "R5->R3",
+      "tipo": 8,
+      "ttl": 16,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:16:1:8"
+    },
+    {
+      "enlace": "R3->R2",
+      "tipo": 8,
+      "ttl": 15,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:15:1:8"
+    },
+    {
+      "enlace": "R2->R3",
+      "tipo": 8,
+      "ttl": 14,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:14:1:8"
+    },
+    {
+      "enlace": "R3->R2",
+      "tipo": 8,
+      "ttl": 13,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:13:1:8"
+    },
+    {
+      "enlace": "R2->R3",
+      "tipo": 8,
+      "ttl": 12,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:12:1:8"
+    },
+    {
+      "enlace": "R3->R2",
+      "tipo": 8,
+      "ttl": 11,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:11:1:8"
+    },
+    {
+      "enlace": "R2->R3",
+      "tipo": 8,
+      "ttl": 10,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:10:1:8"
+    },
+    {
+      "enlace": "R3->R2",
+      "tipo": 8,
+      "ttl": 9,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:9:1:8"
+    },
+    {
+      "enlace": "R2->R3",
+      "tipo": 8,
+      "ttl": 8,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:8:1:8"
+    },
+    {
+      "enlace": "R3->R2",
+      "tipo": 8,
+      "ttl": 7,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:7:1:8"
+    },
+    {
+      "enlace": "R2->R3",
+      "tipo": 8,
+      "ttl": 6,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:6:1:8"
+    },
+    {
+      "enlace": "R3->R2",
+      "tipo": 8,
+      "ttl": 5,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:5:1:8"
+    },
+    {
+      "enlace": "R2->R3",
+      "tipo": 8,
+      "ttl": 4,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:4:1:8"
+    },
+    {
+      "enlace": "R3->R2",
+      "tipo": 8,
+      "ttl": 3,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:3:1:8"
+    },
+    {
+      "enlace": "R2->R3",
+      "tipo": 8,
+      "ttl": 2,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:2:1:8"
+    },
+    {
+      "enlace": "R3->R2",
+      "tipo": 8,
+      "ttl": 1,
+      "pacote": "ICMP:10.6.5.1:10.6.1.1:1:1:8"
+    }
+  ],
+  "demais_pacotes_icmp": [
+    {
+      "enlace": "R2->R3",
+      "tipo": 11,
+      "ttl": 16,
+      "pacote": "ICMP:10.6.2.1:10.6.5.1:16:1:11"
+    },
+    {
+      "enlace": "R3->R5",
+      "tipo": 11,
+      "ttl": 15,
+      "pacote": "ICMP:10.6.2.1:10.6.5.1:15:1:11"
+    }
+  ],
+  "convergiu_depois": true,
+  "tabelas_depois": {
+    "R2": [
+      "Rede destino       Proximo salto    Custo",
+      "10.6.1.0/24        10.6.3.1         6",
+      "10.6.3.0/24        10.6.3.1         2",
+      "10.6.4.0/24        10.6.4.1         7",
+      "10.6.5.0/24        10.6.3.1         5"
+    ],
+    "R3": [
+      "Rede destino       Proximo salto    Custo",
+      "10.6.1.0/24        10.6.1.1         4",
+      "10.6.2.0/24        10.6.2.1         2",
+      "10.6.4.0/24        10.6.5.1         8",
+      "10.6.5.0/24        10.6.5.1         3"
+    ]
+  },
+  "ping_r5_para_r1_depois": [
+    "Resposta de eco de 10.6.1.1 (id=2) RTT=1.55 ms"
+  ],
+  "captura": "capturas/q6_ttl_laco.pcapng"
+}

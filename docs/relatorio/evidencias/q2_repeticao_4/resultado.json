@@ -1,0 +1,50 @@
+{
+  "queda": "R4",
+  "lsps_gerados_pela_mudanca": 2,
+  "por_lsp": {
+    "R2": {
+      "seq": 1795410060,
+      "transmissoes": 6,
+      "aceitos_como_novos": 3,
+      "descartados_copia": 2,
+      "descartados_propria_origem": 0,
+      "enviados_ao_R4_morto": 1,
+      "fecha_a_conta": true,
+      "duracao_na_captura_ms": 0.285,
+      "caminho": [
+        "R2->R1",
+        "R2->R3",
+        "R1->R3",
+        "R3->R1",
+        "R3->R5",
+        "R5->R4"
+      ]
+    },
+    "R5": {
+      "seq": 1795410059,
+      "transmissoes": 5,
+      "aceitos_como_novos": 3,
+      "descartados_copia": 2,
+      "descartados_propria_origem": 0,
+      "enviados_ao_R4_morto": 0,
+      "fecha_a_conta": true,
+      "duracao_na_captura_ms": 0.305,
+      "caminho": [
+        "R5->R3",
+        "R3->R1",
+        "R3->R2",
+        "R1->R2",
+        "R2->R1"
+      ]
+    }
+  },
+  "total": {
+    "transmissoes": 11,
+    "aceitos_como_novos": 6,
+    "descartados_copia": 4,
+    "descartados_propria_origem": 0,
+    "enviados_ao_R4_morto": 1
+  },
+  "segundos_entre_queda_e_primeiro_lsp": 19.603,
+  "captura": "capturas/q2_repeticao_4.pcapng"
+}

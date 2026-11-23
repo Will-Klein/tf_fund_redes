@@ -116,6 +116,10 @@ def run(router, forwarder):
             break
         try:
             texto, continuar = executar(linha, router, forwarder)
+        except KeyboardInterrupt:
+            # Ctrl+C durante a espera de um ping: encerra limpo, como no input acima (D48)
+            print()
+            break
         except Exception as erro:
             # Um erro num comando não pode derrubar o roteador (D38)
             texto, continuar = "Erro ao executar o comando: %s" % erro, True

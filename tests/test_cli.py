@@ -172,6 +172,14 @@ class TestLaco(unittest.TestCase):
             cli.run(router or RouterFalso(TABELA_R1), fwd or ForwarderFalso())
         return saida.getvalue()
 
+    def test_ctrl_c_durante_o_ping_encerra_sem_erro(self):
+        class ForwarderInterrompido(ForwarderFalso):
+            def ping(self, dst, ttl):
+                raise KeyboardInterrupt
+        saida = self.rodar_laco(["ping 10.6.3.1", "tabela"], fwd=ForwarderInterrompido())
+        self.assertNotIn("Erro", saida)
+        self.assertNotIn("Rede destino", saida)   # encerrou: não executou o comando seguinte
+
     def test_executa_ate_sair(self):
         saida = self.rodar_laco(["tabela", "sair", "tabela"])
         self.assertEqual(saida.count("Rede destino"), 1)   # o 'tabela' depois de 'sair' não roda
