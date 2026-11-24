@@ -56,7 +56,7 @@ vizinho 192.168.0.13 6000 7
 Configurações prontas:
 - `configs/local5/` — 5 roteadores em `127.0.0.1`, portas 6001–6005 (testes e relatório).
 - `configs/grupo/` — rede do grupo (3 roteadores) para a apresentação; troque `IP_Rn` pelo IP real de cada VM.
-- `configs/teste_vdi/` — R1, R2 e R3 em 2 VMs (R1 e R2 na mesma VM, portas 6000 e 6002), para o teste entre VMs (`docs/TESTE_VDI.md`).
+- `configs/teste_vdi/` — R1, R2 e R3 em 2 VMs (R1 e R2 na mesma VM, portas 6000 e 6002), para o teste entre VMs.
 
 ## Queda de roteador e de enlace
 
