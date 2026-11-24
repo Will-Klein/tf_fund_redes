@@ -501,7 +501,7 @@ def pdf():
                  "Questão 5: confiabilidade", "Questão 6: TTL", "Figura 1", "Figura 2", "Figura 3", "Figura 4", "Figura 5", "Figura 6", "Anexo A"]
     tem("as 6 questões, a figura e o anexo", *enunciado)
     q = json_de("q2_inundacao")
-    tem("Q2", "circularam %d pacotes LSP" % q["total"]["transmissoes"], "Todos os pacotes têm origem e destino 127.0.0.1", "macOS", "%d foram descartados" % q["total"]["descartados_copia"],
+    tem("Q2", "circularam %d pacotes LSP" % q["total"]["transmissoes"], "pacotes têm origem e destino 127.0.0.1", "macOS", "%d foram descartados" % q["total"]["descartados_copia"],
         *[str(p["seq"]) for p in q["por_lsp"].values()])
     for d in q["vetor_distancia"]:
         if not re.search(r"infinito = %d %d %d" % (d["infinito"], d["rodadas"], d["mensagens"]), corrido):
@@ -512,7 +512,9 @@ def pdf():
     tem("Q4", str(q4r["seq_antigo_na_lsdb_do_r1"]), str(q4r["seq_apos_reinicio_real"]))
     tem("Q5", br(json_de("q5_confiabilidade")["segundos_com_lsdb_desatualizada"], 2))
     tem("Q6", json_de("q6_ttl_laco")["ping_r5_para_r1_durante"][0])
-    for frase in ["até três HELLOs", "uma ou duas renovações", "no mesmo instante, já", "à mão", "ficaram de fora"]:
+    # A última é da versão do William (D53): eram 11 transmissões em cada rodada, não nas 5 juntas
+    for frase in ["até três HELLOs", "uma ou duas renovações", "no mesmo instante, já", "à mão", "ficaram de fora",
+                  "11 transmissões nas 5 rodadas"]:
         conferir("frase corrigida não aparece mais: " + frase, frase not in corrido)
 
 

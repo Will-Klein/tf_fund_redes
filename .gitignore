@@ -7,3 +7,6 @@ logs/
 
 # Sistema
 .DS_Store
+
+# PDF de base do relatório (gera_relatorio.py); o entregue é docs/relatorio/relatorio.pdf (D53)
+docs/relatorio/relatorio_base.pdf
