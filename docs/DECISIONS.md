@@ -10,7 +10,7 @@ Tipo: **T** = escolha técnica livre · **I** = interpretação de ponto que o e
 escolher a opção que (1) cumpre literalmente o texto do professor e protege a interoperabilidade
 e, entre as que cumprem, (2) é a **mais simples de implementar e de explicar** na apresentação.
 Antes de decidir, estudar o ponto; nada de complexidade que não traga nota.
-William delegou as decisões D01–D52 com essa regra; elas estão confirmadas.
+William delegou as decisões D01–D52 com essa regra (a D53 é escolha dele); elas estão confirmadas.
 
 | ID | Tipo | Decisão | Justificativa | Status |
 |---|---|---|---|---|
@@ -66,6 +66,7 @@ William delegou as decisões D01–D52 com essa regra; elas estão confirmadas.
 | D50 | T | O terminal é escrito por uma thread do `Logger`, a partir de uma fila (`mostrar`, `esperar_terminal`); o arquivo de log continua gravado na hora. Respostas da CLI e mensagens recebidas usam a mesma fila. Ao sair, a fila é esvaziada com limite de 2 s e `router.main` termina com `os._exit(0)` | Auditoria: o `print` acontecia com o lock do roteador; com a saída bloqueada, o roteador parou de enviar HELLO (0 em 22 s) e seria declarado inativo. Complementa a D02 (a thread nova não toca o estado do roteador) e a D46 (o texto continua sem prefixo). Fila de até 10.000 linhas: se o terminal ficar parado além disso, some só da tela, nunca do arquivo | Confirmada |
 | D51 | T | Campo numérico aceita no máximo 20 dígitos (`packets.MAX_DIGITOS`, em `so_digitos`), o que vale para pacotes, configuração e TTL da CLI. Octeto com zero à esquerda (`010.6.1.1`) **continua aceito** | No Python 3.11+ o `int()` levanta `ValueError` acima de 4300 dígitos (reproduzido no 3.12); 20 dígitos cobrem qualquer inteiro de 64 bits. O zero à esquerda não causa falha: o endereço só não casa com nenhuma rede e fica sem rota. Rejeitá-lo mudaria a regra de leitura sem ganho de nota (regra de desempate) | Confirmada |
 | D52 | T | Nos experimentos Q2 e Q3, a queda ocorre entre 31 e 36 s após a partida dos roteadores, e o experimento falha se houver renovação na janela | Auditoria: com a queda perto dos 10 s, a detecção coincidia com a renovação de 30 s, e a Q2 misturava LSPs de renovação e chamava de cópia descartes de LSP antigo. O enunciado pede o efeito de **uma única mudança** | Confirmada |
+| D53 | T | O `docs/relatorio/relatorio.pdf` entregue é a versão que o William reescreveu e formatou (2026-11-24), com o mesmo conteúdo e os mesmos dados da versão gerada. `gera_relatorio.py` passa a gravar `relatorio_base.pdf` (fora do Git) e não sobrescreve mais o entregue | Escolha do William sobre o texto. Conferido: todos os números do PDF são os mesmos da versão gerada, e `confere_relatorio.py` roda contra o PDF entregue. A conferência passou a aceitar a frase da Q2 reescrita ("pacotes têm origem e destino 127.0.0.1") e a reprovar "11 transmissões nas 5 rodadas" (foram 11 em cada rodada; corrigida no próprio PDF para "em cada uma") | Confirmada |
 
 ## Análise do ambiente (D24)
 
@@ -117,7 +118,7 @@ Cada decisão foi relida contra `ENUNCIADO.md`. Resultado:
 | Situação | Decisões |
 |---|---|
 | Seguem o texto literalmente (L) | D07, D10, D11, D13, D22, D23, D25, D30, D31, D32 |
-| Escolhas técnicas onde o enunciado deixa livre ("formato a critério do grupo", linguagem livre etc.) | D01–D04, D17, D19, D24, D27–D29, D33–D36, D43–D48, D50–D52 |
+| Escolhas técnicas onde o enunciado deixa livre ("formato a critério do grupo", linguagem livre etc.) | D01–D04, D17, D19, D24, D27–D29, D33–D36, D43–D48, D50–D53 |
 | Interpretações que **cumprem** o texto e só preenchem um detalhe que ele não descreve | D05 ("lista de vizinhos" = a do arquivo de configuração), D06 (V = par de origem do LSP), D08 (a tabela lista "cada roteador alcançável R", e o próprio não tem próximo salto), D12 (tolerância a `\n` final e `;` final: não muda nº de campos nem números, nunca é enviada por nós), D14 (`<= 0` cobre "chegar a 0"), D18 (respostas atrasadas: regra 4 "exibir ao usuário"), D21 (associação refeita a cada HELLO) |
 | Caso **não coberto** pelo texto | D09 (ping/msg para a própria rede) — fora do roteiro da apresentação |
 | Corrigidas nesta verificação | D16 → D30 (não gerar LSP na partida); sincronização → D31 (enviar **todos** os LSPs, sem filtrar o próprio); D20 (removido `ajuda`) |

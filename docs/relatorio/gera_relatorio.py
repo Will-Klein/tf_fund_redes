@@ -1,4 +1,7 @@
-"""Gera docs/relatorio/relatorio.pdf: o texto das respostas com os números medidos.
+"""Gera docs/relatorio/relatorio_base.pdf: o texto das respostas com os números medidos.
+
+O relatorio.pdf entregue é a versão que o William reescreveu e formatou a partir deste PDF, com os
+mesmos dados (D53). Por isso este script grava em outro arquivo e nunca sobrescreve o entregue.
 
 Os números vêm de evidencias/*/resultado.json, dos logs e das capturas; nada é copiado à mão. Se um
 experimento for refeito, basta rodar este script de novo. O PDF é impresso pelo WebKit do macOS
@@ -24,7 +27,7 @@ sys.path.insert(0, AQUI)
 from experimentos import TSHARK  # noqa: E402
 from tira_prints import assinatura, casos as filtros_dos_prints  # noqa: E402
 
-SAIDA = os.path.join(AQUI, "relatorio.pdf")
+SAIDA = os.path.join(AQUI, "relatorio_base.pdf")   # não sobrescreve o relatorio.pdf entregue (D53)
 DISCIPLINA = "Fundamentos de Redes de Computadores"
 INTEGRANTES = ["William de Oliveira Klein", "Gustavo de Freitas Fidélis", "Frederico Abreu Miguens Nizoli"]
 

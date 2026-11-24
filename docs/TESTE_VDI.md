@@ -24,7 +24,7 @@ O Gustavo não precisa repetir a parte A: basta o passo B1 abaixo.
 
 ---
 
-## Parte B — William e Gustavo juntos (cada um na sua VM)
+## Parte B — William e Gustavo juntos (cada um na sua VM) (feita em 2026-11-23)
 
 Os dois abrem a VDI ao mesmo tempo, cada um no seu computador (não precisam estar no mesmo lugar).
 Leva uns 30 minutos. Deixe o PowerShell e as outras janelas lado a lado, sem minimizar (a barra de
@@ -240,14 +240,14 @@ ficam dentro da VM do William e não passam pela Ethernet0).
 
 | Passo | Funcionou? | Observação |
 |---|---|---|
-| B1: código baixado (os dois) | | |
-| B3: UDP chegou nos dois sentidos? IP mostrado = `ipconfig`? | | |
-| B5: R1 e R3 ativos, tabela com custo 5 | | |
-| B6: com o R2, tabelas do triângulo (R1→R3 via R2, custo 3) | | |
-| B7: ping TTL 1 e 2, msg no R3, ping .77, rede inexistente | | |
-| B8: R2 caiu → inativo em ~20 s, R1→R3 direto (5), sem `[ERRO]` | | |
-| B9: R2 voltou → rota via R2 de novo | | |
-| B10: R3 caiu e voltou (e LSP sumiu em 90 s, opcional) | | |
-| B11: enlace R2–R3 caiu, tabelas e ping pelo R1, e voltou | | |
-| B12: 35 s com texto selecionado no R1, sem ficar inativo | | |
-| Wireshark na Ethernet0 (opcional) | | |
+| B1: código baixado (os dois) | Sim | Conferido com `Select-String LIMITE_FILA log.py` (código da `main` após o PR #13) |
+| B3: UDP chegou nos dois sentidos? IP mostrado = `ipconfig`? | Sim | Uma tentativa falhou por aspa curva (`’`) colada no comando; com a aspa reta funcionou |
+| B5: R1 e R3 ativos, tabela com custo 5 | Sim | Print do R1: `10.6.3.1 (<IP da VM do Gustavo>:6000) ficou ATIVO` e rota `10.6.3.0/24` custo 5 |
+| B6: com o R2, tabelas do triângulo (R1→R3 via R2, custo 3) | Sim | R1 e R2 se falaram pelo IP real da VM; o plano B do `127.0.0.1` não foi preciso |
+| B7: ping TTL 1 e 2, msg no R3, ping .77, rede inexistente | Sim | Relatado por William |
+| B8: R2 caiu → inativo em ~20 s, R1→R3 direto (5), sem `[ERRO]` | Sim | Relatado por William |
+| B9: R2 voltou → rota via R2 de novo | Sim | Relatado por William |
+| B10: R3 caiu e voltou (e LSP sumiu em 90 s, opcional) | Sim | Relatado por William (não informado se o opcional dos 90 s foi feito) |
+| B11: enlace R2–R3 caiu, tabelas e ping pelo R1, e voltou | Sim | Prints: LSP do R2 só com o R1, chegando ao R3 pelo R1; R1 direto ao R3 (5). Volta relatada por William |
+| B12: 35 s com texto selecionado no R1, sem ficar inativo | Sim | Print do R3: LSPs do R1 continuaram chegando e nenhum INATIVO em 90 s. Não informado se a saída do R1 pausou durante a seleção |
+| Wireshark na Ethernet0 (opcional) | Não informado | |
